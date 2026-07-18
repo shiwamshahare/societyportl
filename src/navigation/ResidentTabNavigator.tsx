@@ -3,9 +3,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useContext } from 'react';
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { AuthContext } from '../context/AuthContext';
 import Svg, { Path } from 'react-native-svg';
 import { AuthoriseModal } from '../components/ui/AuthoriseModal';
+import { AuthContext } from '../context/AuthContext';
 
 // Screens
 import AlertsScreen from '../screens/AlertsScreen';
@@ -22,15 +22,18 @@ import SocietyScreen from '../screens/SocietyScreen';
 import VisitorRegistrationScreen from '../screens/VisitorRegistrationScreen';
 import VisitorsScreen from '../screens/VisitorsScreen';
 
+import CorporateDetailsScreen from '../screens/CorporateDetailsScreen';
+import OwnerDocumentsScreen from '../screens/OwnerDocumentsScreen';
+import OwnerIdProofScreen from '../screens/OwnerIdProofScreen';
+import TenantNocScreen from '../screens/TenantNocScreen';
 import SelectCityScreen from '../screens/SelectCityScreen';
 import SelectCompanyScreen from '../screens/SelectCompanyScreen';
 import SelectFlatScreen from '../screens/SelectFlatScreen';
+import SelectRoleScreen from '@/screens/SelectRoleScreen';
 import SelectSocietyScreen from '../screens/SelectSocietyScreen';
-import SelectWingScreen from '../screens/SelectWingScreen';
-import CorporateDetailsScreen from '../screens/CorporateDetailsScreen';
-import SocietyDetailsScreen from '../screens/SocietyDetailsScreen';
-
 import SelectTypeScreen from '@/screens/SelectTypeScreen';
+import SelectWingScreen from '../screens/SelectWingScreen';
+import SocietyDetailsScreen from '../screens/SocietyDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -201,6 +204,7 @@ export const ResidentTabNavigator = () => {
         <Stack.Screen name="Alerts" component={AlertsScreen} />
         <Stack.Screen name="VisitorRegistration" component={VisitorRegistrationScreen} />
         <Stack.Screen name="SelectType" component={SelectTypeScreen} />
+        <Stack.Screen name="SelectRole" component={SelectRoleScreen} />
         <Stack.Screen name="SelectCity" component={SelectCityScreen} />
         <Stack.Screen name="SelectSociety" component={SelectSocietyScreen} />
         <Stack.Screen name="SelectWing" component={SelectWingScreen} />
@@ -208,6 +212,9 @@ export const ResidentTabNavigator = () => {
         <Stack.Screen name="SelectCompany" component={SelectCompanyScreen} />
         <Stack.Screen name="CorporateDetails" component={CorporateDetailsScreen} />
         <Stack.Screen name="SocietyDetails" component={SocietyDetailsScreen} />
+        <Stack.Screen name="OwnerIdProof" component={OwnerIdProofScreen} />
+        <Stack.Screen name="OwnerDocuments" component={OwnerDocumentsScreen} />
+        <Stack.Screen name="TenantNoc" component={TenantNocScreen} />
       </Stack.Navigator>
       <AuthoriseModal />
     </View>

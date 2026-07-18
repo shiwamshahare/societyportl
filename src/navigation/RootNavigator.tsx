@@ -23,6 +23,9 @@ import SelectFlatScreen from '../screens/SelectFlatScreen';
 import SelectCompanyScreen from '../screens/SelectCompanyScreen';
 import CorporateDetailsScreen from '../screens/CorporateDetailsScreen';
 import SocietyDetailsScreen from '../screens/SocietyDetailsScreen';
+import OwnerIdProofScreen from '../screens/OwnerIdProofScreen';
+import OwnerDocumentsScreen from '../screens/OwnerDocumentsScreen';
+import TenantNocScreen from '../screens/TenantNocScreen';
 
 // Stack Navigator for Auth
 const Stack = createNativeStackNavigator();
@@ -39,6 +42,9 @@ const AuthStack = () => {
       <Stack.Screen name="SelectCompany" component={SelectCompanyScreen} />
       <Stack.Screen name="CorporateDetails" component={CorporateDetailsScreen} />
       <Stack.Screen name="SocietyDetails" component={SocietyDetailsScreen} />
+      <Stack.Screen name="OwnerIdProof" component={OwnerIdProofScreen} />
+      <Stack.Screen name="OwnerDocuments" component={OwnerDocumentsScreen} />
+      <Stack.Screen name="TenantNoc" component={TenantNocScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
     </Stack.Navigator>

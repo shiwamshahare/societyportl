@@ -22,9 +22,14 @@ const SelectFlatScreen = ({ navigation, route }: { navigation: any; route: any }
 
   const handleNext = () => {
     if (selectedFlat) {
-      // Append Wing prefix e.g. "Wing A - 101" or just "101" but store wing separately too
-      const formattedFlat = `${selectedFlat}`;
-      navigation.navigate('Signup', { type, userRole: role, city, society, wing, flat: formattedFlat });
+      navigation.navigate('OwnerIdProof', {
+        type,
+        role,
+        city,
+        society,
+        wing,
+        flat: selectedFlat,
+      });
     }
   };
 
