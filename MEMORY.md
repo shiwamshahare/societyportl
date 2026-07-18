@@ -1,0 +1,1 @@
+- [Society Management App Name Update](society-portl-app-name.md) — Updated app.json to reflect society management focus with societyPortl name

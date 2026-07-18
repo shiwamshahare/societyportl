@@ -1,4 +1,11 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(python \"C:\\\\Users\\\\Shiwam\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"role-based navigation mobile app community society guard resident admin\" --domain ux)",
+      "Skill(code-review)",
+      "Skill(code-review:*)"
+    ]
+  },
   "enabledPlugins": {
     "expo@claude-plugins-official": true
   }
