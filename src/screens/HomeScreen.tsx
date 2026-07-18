@@ -1,312 +1,272 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext';
 import { DarkTheme } from '../utils/theme';
-import { SPACING, TOUCH_TARGET, BORDER_RADIUS } from '../constants/layout';
-
-// Add extra small spacing
-export const SPACING_XS = 2; // This would normally be in constants but adding here for reference
-
+import { SPACING, BORDER_RADIUS } from '../constants/layout';
 
 const HomeScreen = () => {
-  const { colors } = useTheme();
   const { user, debugSwitchRole } = useContext(AuthContext);
   const isResident = user?.role === 'resident';
 
   // If user is not a resident, show access denied
   if (!isResident) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.accessDeniedContainer}>
+      <SafeAreaView style={styles.accessDeniedContainer}>
+        <View style={styles.accessDeniedCard}>
           <Ionicons name="lock-closed-outline" size={48} color={DarkTheme.status.error} />
           <Text style={styles.accessDeniedTitle}>Access Denied</Text>
           <Text style={styles.accessDeniedMessage}>
             This area is reserved for residents only.
           </Text>
+          <Text style={styles.debugText}>Role: {user?.role}</Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  // Mock data for quick stats
-  const stats = [
-    { label: 'Visitors Today', value: '12', icon: 'person-add-outline', color: DarkTheme.status.info },
-    { label: 'Pending Approvals', value: '3', icon: 'time-outline', color: DarkTheme.status.warning },
-    { label: 'Amenity Bookings', value: '5', icon: 'fitness-outline', color: DarkTheme.status.success },
-    { label: 'Notices', value: '8', icon: 'newspaper-outline', color: DarkTheme.accent.goldLight },
-  ];
-
-  // Mock recent activities
-  const recentActivities = [
-    { id: '1', icon: 'checkmark-circle-outline', color: DarkTheme.status.success, text: 'Visitor approved for Flat 101A', time: '2 min ago' },
-    { id: '2', icon: 'cube-outline', color: DarkTheme.status.warning, text: 'Delivery received for Flat 205B', time: '15 min ago' },
-    { id: '3', icon: 'newspaper-outline', color: DarkTheme.accent.gold, text: 'New community notice posted', time: '1 hour ago' },
-    { id: '4', icon: 'person-add-outline', color: DarkTheme.status.info, text: 'New resident moved in: Flat 303B', time: '2 hours ago' },
-  ];
+  const handleExploreNow = () => {
+    Alert.alert('Explore Services', 'Welcome to the premium lifestyle! Explore our utilities & features.');
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Role Switcher Debug Banner */}
-      <View style={styles.debugBanner}>
-        <Text style={styles.debugText}>Logged in as: <Text style={{fontWeight: 'bold', color: '#C084FC'}}>{user?.name} ({user?.role})</Text></Text>
-        <TouchableOpacity
-          onPress={() => {
-            if (debugSwitchRole) debugSwitchRole('guard');
-          }}
-          style={styles.debugButton}
-          hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
-        >
-          <Text style={styles.debugButtonText}>Switch to Guard</Text>
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      {/* Full screen sunset background image */}
+      <Image
+        source={require('../../assets/images/login_bg.png')}
+        style={styles.bgImage}
+        resizeMode="cover"
+      />
 
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Welcome to Portl</Text>
-        <Text style={styles.headerSubtitle}>
-          Your community, connected
-        </Text>
-      </View>
+      {/* Dynamic gradient overlay to blend into solid black tab bar */}
+      <LinearGradient
+        colors={['rgba(0, 0, 0, 0.2)', 'rgba(0, 0, 0, 0.45)', 'rgba(0, 0, 0, 0.85)', '#000000']}
+        locations={[0, 0.45, 0.8, 1]}
+        style={StyleSheet.absoluteFillObject}
+      />
 
-      <View style={styles.statsContainer}>
-        {stats.map((stat, index) => (
-          <View key={index} style={styles.statCard}>
-            <Ionicons name={stat.icon as any} size={24} color={stat.color} />
-            <View style={styles.statInfo}>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-              <Text style={styles.statValue}>{stat.value}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        {/* Top Header Row */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.addSpaceButton}
+            onPress={() => Alert.alert('Add Space', 'Feature coming soon to allow multi-property management.')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.addSpaceText}>Add Space</Text>
+          </TouchableOpacity>
 
-      <View style={styles.activitiesSection}>
-        <Text style={styles.sectionTitle}>Recent Activity</Text>
-        <FlatList
-          data={recentActivities}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
+          {/* Role switcher debug indicator */}
+          <View style={styles.debugIndicator}>
             <TouchableOpacity
-              activeOpacity={0.7}
-              style={styles.activityItem}
+              onPress={() => {
+                if (debugSwitchRole) debugSwitchRole('guard');
+              }}
+              style={styles.debugButton}
               hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
             >
-              <Ionicons name={item.icon as any} size={20} color={item.color} />
-              <View style={styles.activityDetails}>
-                <Text style={styles.activityText}>{item.text}</Text>
-                <Text style={styles.activityTime}>{item.time}</Text>
-              </View>
+              <Ionicons name="swap-horizontal-outline" size={16} color="#A78BFA" />
             </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.activityListContent}
-        />
-      </View>
+          </View>
 
-      <View style={styles.quickActionsSection}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.quickActionsGrid}>
           <TouchableOpacity
+            style={styles.profileIconButton}
             activeOpacity={0.7}
-            onPress={() => {}}
-            style={styles.quickActionButton}
-            hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
+            onPress={() => Alert.alert('Profile', `Logged in as ${user?.name || 'Resident'}`)}
           >
-            <Ionicons name="person-add-outline" size={28} color={DarkTheme.accent.gold} />
-            <Text style={styles.quickActionLabel}>Visitor Approval</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => {}}
-            style={styles.quickActionButton}
-            hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
-          >
-            <Ionicons name="fitness-outline" size={28} color={DarkTheme.accent.gold} />
-            <Text style={styles.quickActionLabel}>Book Amenity</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => {}}
-            style={styles.quickActionButton}
-            hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
-          >
-            <Ionicons name="calendar-outline" size={28} color={DarkTheme.accent.gold} />
-            <Text style={styles.quickActionLabel}>View Events</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => {}}
-            style={styles.quickActionButton}
-            hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
-          >
-            <Ionicons name="chatbubble-ellipses-outline" size={28} color={DarkTheme.accent.gold} />
-            <Text style={styles.quickActionLabel}>Support</Text>
+            <Image
+              source={require('../../assets/images/avatars/user.png')}
+              style={styles.avatarImage}
+            />
           </TouchableOpacity>
         </View>
-      </View>
-    </SafeAreaView>
+
+        {/* Center/Bottom Content */}
+        <View style={styles.content}>
+          <View style={styles.textGroup}>
+            <Text style={styles.title}>Experience An Unmatched</Text>
+            <Text style={styles.title}>Lifestyle</Text>
+            <Text style={styles.subtitle}>One stop shop for all your household needs</Text>
+          </View>
+
+          {/* Explore Now capsule button */}
+          <TouchableOpacity
+            style={styles.exploreButton}
+            activeOpacity={0.8}
+            onPress={handleExploreNow}
+          >
+            <Text style={styles.exploreButtonText}>EXPLORE NOW</Text>
+          </TouchableOpacity>
+
+          {/* Pager Indicator */}
+          <View style={styles.pagerContainer}>
+            <View style={styles.pagerLineActive} />
+            <View style={styles.pagerLineInactive} />
+          </View>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: DarkTheme.bg.primary,
-    paddingTop: SPACING.sm, // Safe area padding at top
-    paddingBottom: SPACING.sm, // Safe area padding at bottom
+    backgroundColor: '#000000',
+  },
+  bgImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+  safeArea: {
+    flex: 1,
+    justifyContent: 'space-between',
   },
   header: {
-    backgroundColor: DarkTheme.bg.card,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.lg,
-    borderBottomWidth: 1,
-    borderColor: DarkTheme.border.subtle,
-  },
-  headerTitle: {
-    color: DarkTheme.text.primary,
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  headerSubtitle: {
-    color: DarkTheme.text.secondary,
-    marginTop: SPACING.xs,
-    fontSize: 16,
-  },
-  statsContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-    padding: SPACING.md,
-  },
-  statCard: {
+    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: DarkTheme.bg.card,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+  },
+  addSpaceButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: DarkTheme.border.subtle,
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    width: '45%',
-    marginBottom: SPACING.md,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: BORDER_RADIUS.pill,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
   },
-  statInfo: {
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: DarkTheme.text.secondary,
-    marginTop: SPACING.xs,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: DarkTheme.text.primary,
-    marginTop: SPACING.xs,
-  },
-  activitiesSection: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    flex: 1,
-  },
-  sectionTitle: {
-    fontSize: 18,
+  addSpaceText: {
+    color: '#FFFFFF',
+    fontSize: 13,
     fontWeight: '600',
-    marginBottom: SPACING.md,
-    color: DarkTheme.text.primary,
   },
-  activityListContent: {
-    paddingBottom: SPACING.sm,
+  profileIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    overflow: 'hidden',
   },
-  activityItem: {
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  debugIndicator: {
+    position: 'absolute',
+    left: '50%',
+    transform: [{ translateX: -20 }],
+  },
+  debugButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  content: {
+    alignItems: 'center',
+    paddingBottom: 90, // Leaving room for custom bottom tab bar
+  },
+  textGroup: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  title: {
+    color: '#FFFFFF',
+    fontSize: 30,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    lineHeight: 38,
+  },
+  subtitle: {
+    color: '#9CA3AF',
+    fontSize: 15,
+    textAlign: 'center',
+    marginTop: 12,
+    paddingHorizontal: SPACING.xl,
+  },
+  exploreButton: {
+    backgroundColor: 'rgba(12, 12, 14, 0.85)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: BORDER_RADIUS.pill,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  exploreButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 'bold',
+    letterSpacing: 1.5,
+  },
+  pagerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: SPACING.md,
-    backgroundColor: DarkTheme.bg.card,
-    borderWidth: 1,
-    borderColor: DarkTheme.border.subtle,
-    borderRadius: BORDER_RADIUS.sm,
-    marginBottom: SPACING.xs,
+    gap: 8,
+    marginTop: 35,
   },
-  activityDetails: {
-    flex: 1,
-    marginLeft: SPACING.sm,
+  pagerLineActive: {
+    width: 36,
+    height: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1,
   },
-  activityText: {
-    fontSize: 14,
-    color: DarkTheme.text.primary,
-  },
-  activityTime: {
-    fontSize: 12,
-    color: DarkTheme.text.tertiary,
-    marginTop: SPACING.xs,
-  },
-  quickActionsSection: {
-    padding: SPACING.md,
-  },
-  quickActionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-  },
-  quickActionButton: {
-    alignItems: 'center',
-    backgroundColor: DarkTheme.bg.card,
-    borderWidth: 1,
-    borderColor: DarkTheme.border.subtle,
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    width: '45%',
-    marginBottom: SPACING.md,
-  },
-  quickActionLabel: {
-    marginTop: SPACING.xs,
-    fontSize: 12,
-    color: DarkTheme.text.secondary,
+  pagerLineInactive: {
+    width: 36,
+    height: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 1,
   },
   accessDeniedContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#000000',
     padding: SPACING.lg,
-    backgroundColor: DarkTheme.bg.primary,
+  },
+  accessDeniedCard: {
+    backgroundColor: DarkTheme.bg.card,
+    borderWidth: 1,
+    borderColor: DarkTheme.border.subtle,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.xl,
+    alignItems: 'center',
+    gap: SPACING.md,
+    width: '90%',
   },
   accessDeniedTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: SPACING.sm,
     color: DarkTheme.status.error,
   },
   accessDeniedMessage: {
-    fontSize: 16,
+    fontSize: 14,
     color: DarkTheme.text.secondary,
-  },
-  debugBanner: {
-    backgroundColor: '#1E1B4B',
-    paddingVertical: SPACING.xs,
-    paddingHorizontal: SPACING.sm,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderColor: '#312E81',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   debugText: {
-    color: '#D8B4FE',
     fontSize: 12,
-  },
-  debugButton: {
-    backgroundColor: '#7C3AED',
-    paddingHorizontal: SPACING.xs,
-    paddingVertical: SPACING_XS,
-    borderRadius: BORDER_RADIUS.sm,
-  },
-  debugButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: 'bold',
+    color: DarkTheme.text.tertiary,
+    marginTop: SPACING.sm,
   },
 });
-
-
 
 export default HomeScreen;
