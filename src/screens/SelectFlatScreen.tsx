@@ -1,22 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, BORDER_RADIUS } from '../constants/layout';
 
-const SelectRoleScreen = ({ navigation, route }: { navigation: any, route: any }) => {
-  const { type } = route.params || {};
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+const { width } = Dimensions.get('window');
+const ITEM_WIDTH = (width - SPACING.lg * 2 - SPACING.md * 2) / 3;
+
+const FLATS = [
+  '101', '102', '103',
+  '201', '202', '203',
+  '301', '302', '303',
+  '401', '402', '403',
+  '501', '502', '503'
+];
+
+const SelectFlatScreen = ({ navigation, route }: { navigation: any; route: any }) => {
+  const { type, role, city, society, wing } = route.params || {};
+  const [selectedFlat, setSelectedFlat] = useState<string | null>(null);
 
   const handleNext = () => {
-    if (selectedRole) {
-      navigation.navigate('SelectCity', { type, role: selectedRole });
+    if (selectedFlat) {
+      // Append Wing prefix e.g. "Wing A - 101" or just "101" but store wing separately too
+      const formattedFlat = `${selectedFlat}`;
+      navigation.navigate('Signup', { type, userRole: role, city, society, wing, flat: formattedFlat });
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Top Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -30,55 +43,41 @@ const SelectRoleScreen = ({ navigation, route }: { navigation: any, route: any }
 
       {/* Main Content */}
       <View style={styles.content}>
-        <Text style={styles.title}>Are you an owner or tenant?</Text>
+        <Text style={styles.title}>Please select your flat</Text>
 
-        {/* Vertical Role Cards */}
-        <View style={styles.cardsContainer}>
-          {/* Owner */}
-          <TouchableOpacity
-            style={[
-              styles.roleCard,
-              selectedRole === 'owner' && styles.selectedRoleCard,
-            ]}
-            onPress={() => setSelectedRole('owner')}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.roleText,
-                selectedRole === 'owner' && styles.selectedRoleText,
-              ]}
-            >
-              Owner
-            </Text>
-          </TouchableOpacity>
-
-          {/* Tenant */}
-          <TouchableOpacity
-            style={[
-              styles.roleCard,
-              selectedRole === 'tenant' && styles.selectedRoleCard,
-            ]}
-            onPress={() => setSelectedRole('tenant')}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.roleText,
-                selectedRole === 'tenant' && styles.selectedRoleText,
-              ]}
-            >
-              Tenant
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* Flats Grid */}
+        <ScrollView style={styles.listContainer}>
+          <View style={styles.grid}>
+            {FLATS.map((flat, index) => {
+              const isSelected = selectedFlat === flat;
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.flatItem,
+                    isSelected && styles.selectedFlatItem
+                  ]}
+                  onPress={() => setSelectedFlat(flat)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[
+                    styles.flatText,
+                    isSelected && styles.selectedFlatText
+                  ]}>
+                    {flat}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
       </View>
 
       {/* Footer Navigation */}
       <View style={styles.footer}>
-        {/* Progress bar line (Step 2/7 = 28.6% width) */}
+        {/* Progress bar line (Step 6/7 = 85.7% width) */}
         <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: '28.6%' }]} />
+          <View style={[styles.progressBar, { width: '85.7%' }]} />
         </View>
 
         <View style={styles.footerButtons}>
@@ -93,10 +92,10 @@ const SelectRoleScreen = ({ navigation, route }: { navigation: any, route: any }
           <TouchableOpacity
             style={[
               styles.nextButton,
-              !selectedRole && styles.disabledNextButton
+              !selectedFlat && styles.disabledNextButton
             ]}
             onPress={handleNext}
-            disabled={!selectedRole}
+            disabled={!selectedFlat}
             activeOpacity={0.8}
           >
             <Text style={styles.nextText}>Next</Text>
@@ -110,7 +109,7 @@ const SelectRoleScreen = ({ navigation, route }: { navigation: any, route: any }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: DarkTheme.bg.primary,
+    backgroundColor: '#000000',
   },
   header: {
     paddingHorizontal: SPACING.lg,
@@ -132,32 +131,40 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: DarkTheme.text.primary,
+    color: '#FFFFFF',
     marginBottom: SPACING.xxl,
   },
-  cardsContainer: {
-    gap: SPACING.lg,
+  listContainer: {
+    flex: 1,
   },
-  roleCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.md,
+    justifyContent: 'flex-start',
+  },
+  flatItem: {
+    width: ITEM_WIDTH,
+    height: 60,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: BORDER_RADIUS.lg,
-    height: 72,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.xs,
   },
-  selectedRoleCard: {
+  selectedFlatItem: {
     borderColor: DarkTheme.accent.gold,
     backgroundColor: 'rgba(217, 119, 6, 0.05)',
   },
-  roleText: {
+  flatText: {
     fontSize: 16,
-    color: DarkTheme.text.secondary,
-    fontWeight: '500',
+    color: '#9CA3AF',
+    fontWeight: '600',
   },
-  selectedRoleText: {
-    color: DarkTheme.text.primary,
+  selectedFlatText: {
+    color: '#FFFFFF',
     fontWeight: 'bold',
   },
   footer: {
@@ -184,7 +191,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   backText: {
-    color: DarkTheme.text.primary,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -206,4 +213,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SelectRoleScreen;
+export default SelectFlatScreen;

@@ -38,7 +38,7 @@ const SignupScreen = ({ navigation, route }: { navigation: SignupScreenNavigatio
   const { colors } = useTheme();
   const { signUp } = useContext(AuthContext);
   
-  const { city, type, userRole, phone, email } = route.params || {};
+  const { city, type, userRole, phone, email, society, wing, flat, company } = route.params || {};
 
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [firstName, setFirstName] = useState('');
@@ -77,8 +77,9 @@ const SignupScreen = ({ navigation, route }: { navigation: SignupScreenNavigatio
         password: 'user123', // auto generated password for simplified direct flow
         phone: mobileNumber.trim(),
         role: (userRole || 'resident') as 'resident' | 'guard' | 'admin',
-        flatNumber: '101A',
-        tower: 'Tower A',
+        flatNumber: flat || undefined,
+        tower: wing || undefined,
+        societyName: type === 'commercial' ? company || '' : society || '',
       });
 
       if (!registerResult.success) {

@@ -16,7 +16,12 @@ import SignupScreen from '../screens/SignupScreen';
 import OnboardingIntroScreen from '../screens/OnboardingIntroScreen';
 import SelectCityScreen from '../screens/SelectCityScreen';
 import SelectTypeScreen from '../screens/SelectTypeScreen';
+import SelectSocietyScreen from '../screens/SelectSocietyScreen';
 import SelectRoleScreen from '../screens/SelectRoleScreen';
+import SelectWingScreen from '../screens/SelectWingScreen';
+import SelectFlatScreen from '../screens/SelectFlatScreen';
+import SelectCompanyScreen from '../screens/SelectCompanyScreen';
+import CorporateDetailsScreen from '../screens/CorporateDetailsScreen';
 import SocietyDetailsScreen from '../screens/SocietyDetailsScreen';
 
 // Stack Navigator for Auth
@@ -27,7 +32,12 @@ const AuthStack = () => {
       <Stack.Screen name="OnboardingIntro" component={OnboardingIntroScreen} />
       <Stack.Screen name="SelectCity" component={SelectCityScreen} />
       <Stack.Screen name="SelectType" component={SelectTypeScreen} />
+      <Stack.Screen name="SelectSociety" component={SelectSocietyScreen} />
       <Stack.Screen name="SelectRole" component={SelectRoleScreen} />
+      <Stack.Screen name="SelectWing" component={SelectWingScreen} />
+      <Stack.Screen name="SelectFlat" component={SelectFlatScreen} />
+      <Stack.Screen name="SelectCompany" component={SelectCompanyScreen} />
+      <Stack.Screen name="CorporateDetails" component={CorporateDetailsScreen} />
       <Stack.Screen name="SocietyDetails" component={SocietyDetailsScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />

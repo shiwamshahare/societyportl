@@ -1,27 +1,36 @@
-import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
-import { Platform, View, Text, TouchableOpacity, StyleSheet, Dimensions, Image } from 'react-native';
+import React, { useContext } from 'react';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AuthContext } from '../context/AuthContext';
 import Svg, { Path } from 'react-native-svg';
 import { AuthoriseModal } from '../components/ui/AuthoriseModal';
 
 // Screens
+import AlertsScreen from '../screens/AlertsScreen';
+import AmenitiesScreen from '../screens/AmenitiesScreen';
+import ComplaintsScreen from '../screens/ComplaintsScreen';
 import HomeScreen from '../screens/HomeScreen';
-import SocietyScreen from '../screens/SocietyScreen';
 import MarketplaceScreen from '../screens/MarketplaceScreen';
+import NoticesScreen from '../screens/NoticesScreen';
+import PollsScreen from '../screens/PollsScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 import ProjectScreen from '../screens/ProjectScreen';
 import ShortcutsScreen from '../screens/ShortcutsScreen';
-import VisitorsScreen from '../screens/VisitorsScreen';
-import AmenitiesScreen from '../screens/AmenitiesScreen';
-import NoticesScreen from '../screens/NoticesScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import ComplaintsScreen from '../screens/ComplaintsScreen';
-import PollsScreen from '../screens/PollsScreen';
-import AlertsScreen from '../screens/AlertsScreen';
+import SocietyScreen from '../screens/SocietyScreen';
 import VisitorRegistrationScreen from '../screens/VisitorRegistrationScreen';
+import VisitorsScreen from '../screens/VisitorsScreen';
 
-import { DarkTheme } from '../utils/theme';
+import SelectCityScreen from '../screens/SelectCityScreen';
+import SelectCompanyScreen from '../screens/SelectCompanyScreen';
+import SelectFlatScreen from '../screens/SelectFlatScreen';
+import SelectSocietyScreen from '../screens/SelectSocietyScreen';
+import SelectWingScreen from '../screens/SelectWingScreen';
+import CorporateDetailsScreen from '../screens/CorporateDetailsScreen';
+import SocietyDetailsScreen from '../screens/SocietyDetailsScreen';
+
+import SelectTypeScreen from '@/screens/SelectTypeScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -62,8 +71,8 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
           const label = options.tabBarLabel !== undefined
             ? options.tabBarLabel
             : options.title !== undefined
-            ? options.title
-            : route.name;
+              ? options.title
+              : route.name;
 
           const isFocused = state.index === index;
 
@@ -159,9 +168,11 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
 
 // Tabs Navigator
 const ResidentTabs = () => {
+  const { user } = useContext(AuthContext);
   return (
     <Tab.Navigator
       tabBar={props => <CustomTabBar {...props} />}
+      initialRouteName={user && user.isApproved === false ? "Society" : "Home"}
       screenOptions={{
         headerShown: false,
       }}
@@ -189,6 +200,14 @@ export const ResidentTabNavigator = () => {
         <Stack.Screen name="Polls" component={PollsScreen} />
         <Stack.Screen name="Alerts" component={AlertsScreen} />
         <Stack.Screen name="VisitorRegistration" component={VisitorRegistrationScreen} />
+        <Stack.Screen name="SelectType" component={SelectTypeScreen} />
+        <Stack.Screen name="SelectCity" component={SelectCityScreen} />
+        <Stack.Screen name="SelectSociety" component={SelectSocietyScreen} />
+        <Stack.Screen name="SelectWing" component={SelectWingScreen} />
+        <Stack.Screen name="SelectFlat" component={SelectFlatScreen} />
+        <Stack.Screen name="SelectCompany" component={SelectCompanyScreen} />
+        <Stack.Screen name="CorporateDetails" component={CorporateDetailsScreen} />
+        <Stack.Screen name="SocietyDetails" component={SocietyDetailsScreen} />
       </Stack.Navigator>
       <AuthoriseModal />
     </View>

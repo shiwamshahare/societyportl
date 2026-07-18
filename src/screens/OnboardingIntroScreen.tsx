@@ -104,7 +104,7 @@ const OnboardingIntroScreen = ({ navigation }: { navigation: any }) => {
           {/* Option 1: Add Your Home */}
           <TouchableOpacity
             style={styles.optionCard}
-            onPress={() => navigation.navigate('SelectCity')}
+            onPress={() => navigation.navigate('SelectType')}
             activeOpacity={0.7}
           >
             <View style={styles.optionInfo}>

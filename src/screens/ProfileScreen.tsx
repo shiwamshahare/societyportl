@@ -15,6 +15,7 @@ import { AuthContext } from '../context/AuthContext';
 export default function ProfileScreen() {
   const navigation = useNavigation<any>();
   const { user, signOut } = useContext(AuthContext);
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
 
   const name = user?.name || 'Shiwam Shah';
   const phone = user?.phone || '+91 8605978199';
@@ -138,7 +139,7 @@ export default function ProfileScreen() {
         {/* My Account block */}
         <View style={styles.menuBlock}>
           <Text style={styles.blockTitle}>My Account</Text>
-          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={() => setShowDeleteModal(true)}>
             <View style={styles.menuItemLeft}>
               <Ionicons name="person-remove-outline" size={20} color="rgba(255, 255, 255, 0.8)" style={styles.menuIcon} />
               <Text style={styles.menuItemText}>Delete Account</Text>
@@ -161,6 +162,37 @@ export default function ProfileScreen() {
           <Text style={styles.brandVersion}>v3.6.0</Text>
         </View>
       </ScrollView>
+
+      {showDeleteModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Delete Account</Text>
+            <Text style={styles.modalDesc}>
+              Are you sure you want to delete your account?{'\n'}
+              Note: This action will delete all your data. If you want to leave the property, please use the leave property option
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.cancelModalBtn}
+                onPress={() => setShowDeleteModal(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cancelModalText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteModalBtn}
+                onPress={() => {
+                  setShowDeleteModal(false);
+                  signOut?.();
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.deleteModalText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -331,5 +363,65 @@ const styles = StyleSheet.create({
   brandVersion: {
     color: 'rgba(255, 255, 255, 0.15)',
     fontSize: 12,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  modalDesc: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 12,
+  },
+  cancelModalBtn: {
+    flex: 1,
+    backgroundColor: '#3A3A3C',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  cancelModalText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  deleteModalBtn: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  deleteModalText: {
+    color: '#000000',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 });

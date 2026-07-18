@@ -5,13 +5,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, BORDER_RADIUS } from '../constants/layout';
 
-const SelectTypeScreen = ({ navigation, route }: { navigation: any, route: any }) => {
-  const { city } = route.params || {};
+const SelectTypeScreen = ({ navigation }: { navigation: any }) => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
   const handleNext = () => {
     if (selectedType) {
-      navigation.navigate('SelectRole', { city, type: selectedType });
+      if (selectedType === 'residential') {
+        navigation.navigate('SelectRole', { type: selectedType });
+      } else {
+        navigation.navigate('SelectCity', { type: selectedType });
+      }
     }
   };
 
@@ -76,9 +79,9 @@ const SelectTypeScreen = ({ navigation, route }: { navigation: any, route: any }
 
       {/* Footer Navigation */}
       <View style={styles.footer}>
-        {/* Progress bar line (Step 2/3 = 66.6% width) */}
+        {/* Progress bar line (Step 1/7 = 14.3% width) */}
         <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: '66.6%' }]} />
+          <View style={[styles.progressBar, { width: '14.3%' }]} />
         </View>
 
         <View style={styles.footerButtons}>

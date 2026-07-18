@@ -1,19 +1,21 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { DarkTheme } from '../utils/theme';
-import { SPACING, BORDER_RADIUS } from '../constants/layout';
+import React, { useContext, useState } from 'react';
+import { Alert, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { HouseIllustration, ListSocietyIllustration } from '../components/ui/SvgIllustrations';
+import { BORDER_RADIUS, SPACING } from '../constants/layout';
 import { AuthContext } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
 const SocietyScreen = ({ navigation }: { navigation: any }) => {
-  const { user } = useContext(AuthContext);
+  const { user, isSocietyLocked, submittedName } = useContext(AuthContext);
+  const [showBottomSheet, setShowBottomSheet] = useState(true);
+  const [showApprovedAlert, setShowApprovedAlert] = useState(false);
 
   const handleOnboardNow = () => {
-    Alert.alert('Onboarding', 'Your flat onboarding is already active and verified!');
+    setShowBottomSheet(true);
   };
 
   const handleBadgePress = (screen: string) => {
@@ -23,6 +25,56 @@ const SocietyScreen = ({ navigation }: { navigation: any }) => {
       navigation.navigate(screen);
     }
   };
+
+  const isLocked = isSocietyLocked || (user && user.isApproved === true);
+  const displayName = user?.name ? user.name.split(' ')[0] : (submittedName || 'Shiwam');
+
+  if (isLocked) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        {/* Background Gradient Glow */}
+        <LinearGradient
+          colors={['#000000', '#000000', '#061D22', '#0A2D35']}
+          locations={[0, 0.4, 0.8, 1]}
+          style={StyleSheet.absoluteFillObject}
+        />
+
+        {/* Lock Content Container */}
+        <View style={styles.lockContainer}>
+          {/* Lock Icon */}
+          <View style={styles.lockIconCircle}>
+            <Ionicons name="lock-closed" size={72} color="#F59E0B" />
+          </View>
+
+          {/* User Greeting */}
+          <Text style={styles.lockTitle}>Hey {displayName}</Text>
+
+          {/* Locked Notice Description */}
+          <Text style={styles.lockDesc}>
+            The society features would be activated once your request is approved by Society. It usually happens within 48-72 hours. Please reach out to Society for approval related queries.
+          </Text>
+        </View>
+
+        {/* Custom Pending Approval Dialog */}
+        {showApprovedAlert && (
+          <View style={styles.alertOverlay}>
+            <View style={styles.alertContent}>
+              <Text style={styles.alertText}>
+                The society features would be activated once your request is approved by the Society admin. It usually happens within 48-72 hours. Please reach out to the Society admin for approval related queries.
+              </Text>
+              <TouchableOpacity
+                style={styles.alertButton}
+                onPress={() => setShowApprovedAlert(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.alertButtonText}>Okay</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -212,6 +264,63 @@ const SocietyScreen = ({ navigation }: { navigation: any }) => {
           <View style={styles.pagerLineActive} />
         </View>
       </View>
+
+      {/* Onboarding Request Bottom Sheet */}
+      {showBottomSheet && (
+        <View style={styles.bottomSheet}>
+          <View style={styles.sheetHeader}>
+            <Text style={styles.sheetTitle}>Onboarding Request</Text>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowBottomSheet(false)}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="close-outline" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.sheetOptions}>
+            <TouchableOpacity
+              style={styles.optionCard}
+              onPress={() => {
+                setShowBottomSheet(false);
+                navigation.navigate('SelectType');
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.optionInfo}>
+                <Text style={styles.optionTitle}>Add Your Home</Text>
+                <Text style={styles.optionDesc}>
+                  Booking your favourite amenity to allowing visitors made seamless
+                </Text>
+              </View>
+              <View style={styles.optionIllustration}>
+                <HouseIllustration />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.optionCard}
+              onPress={() => {
+                setShowBottomSheet(false);
+                navigation.navigate('SocietyDetails');
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.optionInfo}>
+                <Text style={styles.optionTitle}>List Your Society With Us</Text>
+                <Text style={styles.optionDesc}>
+                  Most advanced and premium society management solution
+                </Text>
+              </View>
+              <View style={styles.optionIllustration}>
+                <ListSocietyIllustration />
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -496,6 +605,145 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: '#FFFFFF',
     borderRadius: 1,
+  },
+  bottomSheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#18181B',
+    borderTopLeftRadius: BORDER_RADIUS.xxl,
+    borderTopRightRadius: BORDER_RADIUS.xxl,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.xl,
+    paddingBottom: 105,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 20,
+    zIndex: 100,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  sheetTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  closeButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: BORDER_RADIUS.pill,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetOptions: {
+    gap: SPACING.md,
+  },
+  optionCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  optionInfo: {
+    flex: 1,
+    paddingRight: SPACING.md,
+  },
+  optionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  optionDesc: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    lineHeight: 16,
+  },
+  optionIllustration: {
+    width: 90,
+    height: 70,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lockContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 36,
+  },
+  lockIconCircle: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'rgba(245, 158, 11, 0.05)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(245, 158, 11, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 28,
+  },
+  lockTitle: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  lockDesc: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 12,
+  },
+  alertOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2000,
+  },
+  alertContent: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    alignItems: 'center',
+  },
+  alertText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+    fontWeight: '500',
+  },
+  alertButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingVertical: 14,
+    width: '100%',
+    alignItems: 'center',
+  },
+  alertButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

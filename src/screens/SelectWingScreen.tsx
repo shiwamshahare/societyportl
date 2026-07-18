@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, BORDER_RADIUS } from '../constants/layout';
 
-const SelectRoleScreen = ({ navigation, route }: { navigation: any, route: any }) => {
-  const { type } = route.params || {};
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+const WINGS = ['Wing A', 'Wing B', 'Wing C', 'Wing D', 'Wing E', 'Wing F'];
+
+const SelectWingScreen = ({ navigation, route }: { navigation: any; route: any }) => {
+  const { type, role, city, society } = route.params || {};
+  const [selectedWing, setSelectedWing] = useState<string | null>(null);
 
   const handleNext = () => {
-    if (selectedRole) {
-      navigation.navigate('SelectCity', { type, role: selectedRole });
+    if (selectedWing) {
+      navigation.navigate('SelectFlat', { type, role, city, society, wing: selectedWing });
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Top Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -30,55 +32,42 @@ const SelectRoleScreen = ({ navigation, route }: { navigation: any, route: any }
 
       {/* Main Content */}
       <View style={styles.content}>
-        <Text style={styles.title}>Are you an owner or tenant?</Text>
+        <Text style={styles.title}>Please select your wing</Text>
 
-        {/* Vertical Role Cards */}
-        <View style={styles.cardsContainer}>
-          {/* Owner */}
-          <TouchableOpacity
-            style={[
-              styles.roleCard,
-              selectedRole === 'owner' && styles.selectedRoleCard,
-            ]}
-            onPress={() => setSelectedRole('owner')}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.roleText,
-                selectedRole === 'owner' && styles.selectedRoleText,
-              ]}
-            >
-              Owner
-            </Text>
-          </TouchableOpacity>
-
-          {/* Tenant */}
-          <TouchableOpacity
-            style={[
-              styles.roleCard,
-              selectedRole === 'tenant' && styles.selectedRoleCard,
-            ]}
-            onPress={() => setSelectedRole('tenant')}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.roleText,
-                selectedRole === 'tenant' && styles.selectedRoleText,
-              ]}
-            >
-              Tenant
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* Wings List */}
+        <ScrollView style={styles.listContainer}>
+          {WINGS.map((wing, index) => {
+            const isSelected = selectedWing === wing;
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.wingItem,
+                  isSelected && styles.selectedWingItem
+                ]}
+                onPress={() => setSelectedWing(wing)}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  styles.wingText,
+                  isSelected && styles.selectedWingText
+                ]}>
+                  {wing}
+                </Text>
+                {isSelected && (
+                  <Ionicons name="checkmark-circle" size={20} color={DarkTheme.accent.gold} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
       {/* Footer Navigation */}
       <View style={styles.footer}>
-        {/* Progress bar line (Step 2/7 = 28.6% width) */}
+        {/* Progress bar line (Step 5/7 = 71.4% width) */}
         <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: '28.6%' }]} />
+          <View style={[styles.progressBar, { width: '71.4%' }]} />
         </View>
 
         <View style={styles.footerButtons}>
@@ -93,10 +82,10 @@ const SelectRoleScreen = ({ navigation, route }: { navigation: any, route: any }
           <TouchableOpacity
             style={[
               styles.nextButton,
-              !selectedRole && styles.disabledNextButton
+              !selectedWing && styles.disabledNextButton
             ]}
             onPress={handleNext}
-            disabled={!selectedRole}
+            disabled={!selectedWing}
             activeOpacity={0.8}
           >
             <Text style={styles.nextText}>Next</Text>
@@ -110,7 +99,7 @@ const SelectRoleScreen = ({ navigation, route }: { navigation: any, route: any }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: DarkTheme.bg.primary,
+    backgroundColor: '#000000',
   },
   header: {
     paddingHorizontal: SPACING.lg,
@@ -132,32 +121,35 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: DarkTheme.text.primary,
+    color: '#FFFFFF',
     marginBottom: SPACING.xxl,
   },
-  cardsContainer: {
-    gap: SPACING.lg,
+  listContainer: {
+    flex: 1,
   },
-  roleCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  wingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: BORDER_RADIUS.lg,
-    height: 72,
-    justifyContent: 'center',
-    paddingHorizontal: SPACING.lg,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: 18,
+    paddingHorizontal: SPACING.md,
+    marginBottom: SPACING.sm,
   },
-  selectedRoleCard: {
+  selectedWingItem: {
     borderColor: DarkTheme.accent.gold,
     backgroundColor: 'rgba(217, 119, 6, 0.05)',
   },
-  roleText: {
+  wingText: {
     fontSize: 16,
-    color: DarkTheme.text.secondary,
+    color: '#9CA3AF',
     fontWeight: '500',
   },
-  selectedRoleText: {
-    color: DarkTheme.text.primary,
+  selectedWingText: {
+    color: '#FFFFFF',
     fontWeight: 'bold',
   },
   footer: {
@@ -184,7 +176,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   backText: {
-    color: DarkTheme.text.primary,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -206,4 +198,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SelectRoleScreen;
+export default SelectWingScreen;

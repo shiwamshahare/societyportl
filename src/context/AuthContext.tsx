@@ -1,4 +1,4 @@
-import React, { createContext, useState, ReactNode } from 'react';
+import React, { createContext, ReactNode, useState } from 'react';
 
 export type UserRole = 'resident' | 'guard' | 'admin';
 
@@ -11,6 +11,8 @@ export type User = {
   tower?: string;
   phone?: string;
   password?: string;
+  societyName?: string;
+  isApproved?: boolean;
 };
 
 type AuthContextType = {
@@ -22,6 +24,10 @@ type AuthContextType = {
   signUp: (newUser: Omit<User, 'id'>) => Promise<{ success: boolean; error?: string }>;
   signOut: () => void;
   debugSwitchRole?: (role: UserRole) => void;
+  isSocietyLocked: boolean;
+  setIsSocietyLocked: (val: boolean) => void;
+  submittedName: string;
+  setSubmittedName: (val: string) => void;
 };
 
 export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -30,13 +36,14 @@ export const AuthContext = createContext<AuthContextType>({} as AuthContextType)
 const INITIAL_USERS: User[] = [
   {
     id: '1',
-    name: 'John Doe',
+    name: 'Shiwam Shahare',
     email: 'resident@example.com',
     password: 'resident123',
     role: 'resident',
     flatNumber: '101A',
     tower: 'Tower A',
-    phone: '+1 (555) 123-4567'
+    phone: '+91 8412908901',
+    isApproved: true
   },
   {
     id: '2',
@@ -44,7 +51,8 @@ const INITIAL_USERS: User[] = [
     email: 'guard@example.com',
     password: 'guard123',
     role: 'guard',
-    phone: '+1 (555) 987-6543'
+    phone: '+91 8605978199',
+    isApproved: true
   },
   {
     id: '3',
@@ -52,7 +60,8 @@ const INITIAL_USERS: User[] = [
     email: 'admin@example.com',
     password: 'admin123',
     role: 'admin',
-    phone: '+1 (555) 000-1111'
+    phone: '+91 0000000000',
+    isApproved: true
   }
 ];
 
@@ -60,6 +69,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>(INITIAL_USERS);
+  const [isSocietyLocked, setIsSocietyLocked] = useState(false);
+  const [submittedName, setSubmittedName] = useState('Shiwam');
 
   const signIn = (credentials: { email: string; password: string; role: UserRole }): Promise<{ success: boolean; error?: string }> => {
     return new Promise<{ success: boolean; error?: string }>((resolve) => {
@@ -102,15 +113,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const newUserObj: User = {
           ...newUserData,
           id: String(users.length + 1),
+          isApproved: false,
         };
 
         setUsers(prev => [...prev, newUserObj]);
-        
+
         // Log in the user automatically
         const { password, ...userWithoutPassword } = newUserObj;
         setUser(userWithoutPassword);
         setIsSignedIn(true);
-        
+
         resolve({ success: true });
       }, 1000);
     });
@@ -131,7 +143,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isSignedIn, user, users, signIn, signInDirect, signUp, signOut, debugSwitchRole }}>
+    <AuthContext.Provider value={{
+      isSignedIn,
+      user,
+      users,
+      signIn,
+      signInDirect,
+      signUp,
+      signOut,
+      debugSwitchRole,
+      isSocietyLocked,
+      setIsSocietyLocked,
+      submittedName,
+      setSubmittedName,
+    }}>
       {children}
     </AuthContext.Provider>
   );

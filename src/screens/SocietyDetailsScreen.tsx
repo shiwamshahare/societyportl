@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -15,8 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { SPACING, BORDER_RADIUS } from '../constants/layout';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { DarkTheme } from '../utils/theme';
+import { AuthContext } from '../context/AuthContext';
 
 const SocietyDetailsScreen = ({ navigation }: { navigation: any }) => {
+  const { setIsSocietyLocked, setSubmittedName } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     managerPhone: '',
     managerName: '',
@@ -39,7 +41,11 @@ const SocietyDetailsScreen = ({ navigation }: { navigation: any }) => {
       [
         {
           text: 'OK',
-          onPress: () => navigation.navigate('OnboardingIntro'),
+          onPress: () => {
+            setIsSocietyLocked(true);
+            setSubmittedName(formData.managerName);
+            navigation.navigate('ResidentTabs', { screen: 'Society' });
+          },
         },
       ]
     );

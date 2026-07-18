@@ -1,35 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, BORDER_RADIUS } from '../constants/layout';
-import {
-  MumbaiIcon,
-  PuneIcon,
-  BangaloreIcon,
-  ChennaiIcon,
-  NoidaIcon,
-  HyderabadIcon,
-} from '../components/ui/SvgIllustrations';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const CITIES = [
-  { id: 'mumbai', name: 'Mumbai', Icon: MumbaiIcon },
-  { id: 'pune', name: 'Pune', Icon: PuneIcon },
-  { id: 'bangalore', name: 'Bangalore', Icon: BangaloreIcon },
-  { id: 'chennai', name: 'Chennai', Icon: ChennaiIcon },
-  { id: 'noida', name: 'Noida', Icon: NoidaIcon },
-  { id: 'hyderabad', name: 'Hyderabad', Icon: HyderabadIcon },
+  { id: 'mumbai', name: 'Mumbai', image: require('../../assets/images/cities/mumbai.png') },
+  { id: 'pune', name: 'Pune', image: require('../../assets/images/cities/pune.png') },
+  { id: 'bangalore', name: 'Bangalore', image: require('../../assets/images/cities/bangalore.png') },
+  { id: 'chennai', name: 'Chennai', image: require('../../assets/images/cities/chennai.png') },
+  { id: 'noida', name: 'Noida', image: require('../../assets/images/cities/noida.png') },
+  { id: 'hyderabad', name: 'Hyderabad', image: require('../../assets/images/cities/hyderabad.png') },
+  { id: 'nagpur', name: 'Nagpur', image: require('../../assets/images/cities/nagpur.png') },
+  { id: 'jaipur', name: 'Jaipur', image: require('../../assets/images/cities/jaipur.png') },
+  { id: 'kolkata', name: 'Kolkata', image: require('../../assets/images/cities/kolkata.png') },
 ];
 
-const SelectCityScreen = ({ navigation }: { navigation: any }) => {
+const SelectCityScreen = ({ navigation, route }: { navigation: any, route: any }) => {
+  const { type, role } = route.params || {};
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
   const handleNext = () => {
     if (selectedCity) {
-      navigation.navigate('SelectType', { city: selectedCity });
+      if (type === 'commercial') {
+        navigation.navigate('SelectCompany', { type, city: selectedCity });
+      } else {
+        navigation.navigate('SelectSociety', { type, role, city: selectedCity });
+      }
     }
   };
 
@@ -54,7 +54,6 @@ const SelectCityScreen = ({ navigation }: { navigation: any }) => {
         <View style={styles.gridContainer}>
           {CITIES.map((city, index) => {
             const isSelected = selectedCity === city.id;
-            const IconComponent = city.Icon;
             
             // Calculate grid border styles dynamically to avoid double borders
             const isSecondRow = index >= 3;
@@ -75,10 +74,12 @@ const SelectCityScreen = ({ navigation }: { navigation: any }) => {
                 activeOpacity={0.7}
               >
                 <View style={styles.iconContainer}>
-                  <IconComponent 
-                    color={isSelected ? DarkTheme.accent.gold : 'rgba(255,255,255,0.4)'} 
-                    width={48} 
-                    height={48} 
+                  <Image 
+                    source={city.image} 
+                    style={[
+                      styles.cityImage,
+                      isSelected && styles.selectedCityImage
+                    ]} 
                   />
                 </View>
                 <Text style={[
@@ -95,9 +96,9 @@ const SelectCityScreen = ({ navigation }: { navigation: any }) => {
 
       {/* Footer Navigation */}
       <View style={styles.footer}>
-        {/* Progress bar line (Step 1/3 = 33% width) */}
+        {/* Progress bar line (Step 3/7 = 42.8% width) */}
         <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: '33.3%' }]} />
+          <View style={[styles.progressBar, { width: '42.8%' }]} />
         </View>
 
         <View style={styles.footerButtons}>
@@ -198,6 +199,15 @@ const styles = StyleSheet.create({
   selectedCityLabel: {
     color: DarkTheme.accent.gold,
     fontWeight: 'bold',
+  },
+  cityImage: {
+    width: 54,
+    height: 54,
+    opacity: 0.45,
+    resizeMode: 'contain',
+  },
+  selectedCityImage: {
+    opacity: 1,
   },
   footer: {
     paddingBottom: SPACING.xl,
