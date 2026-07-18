@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { VisitorContext, VisitorType, PreApprovedInvite } from '../context/VisitorContext';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, TOUCH_TARGET, BORDER_RADIUS } from '../constants/layout';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 
 const GuardVisitorEntryScreen = () => {
   const { signOut, user, debugSwitchRole } = useContext(AuthContext);
@@ -218,12 +219,12 @@ const GuardVisitorEntryScreen = () => {
           
           {/* Details Textbox with submit arrow */}
           <View style={styles.inputWrapper}>
-            <TextInput
-              placeholder="Enter details"
-              placeholderTextColor="#9CA3AF"
+            <FloatingLabelInput
+              label="Enter passcode or mobile"
               value={details}
-              editable={false} // Only updated via custom keypad
+              editable={false}
               style={styles.textbox}
+              containerStyle={{ flex: 1, marginRight: SPACING.xs }}
             />
             <TouchableOpacity 
               activeOpacity={0.8}
@@ -312,30 +313,34 @@ const GuardVisitorEntryScreen = () => {
             </View>
 
             <ScrollView>
-              <Text style={styles.formInputLabel}>Mobile Entered</Text>
-              <TextInput
+              <FloatingLabelInput
+                label="Mobile Entered"
                 value={details}
                 editable={false}
-                style={[styles.formInput, { backgroundColor: '#F3F4F6', color: '#6B7280' }]}
+                style={styles.formInput}
+                labelBgColor={DarkTheme.bg.card}
+                containerStyle={{ marginTop: SPACING.md }}
               />
 
-              <Text style={styles.formInputLabel}>Visitor Name</Text>
-              <TextInput
-                placeholder="e.g. Ramesh Yadav"
+              <FloatingLabelInput
+                label="Visitor Name"
                 value={visitorName}
                 onChangeText={setVisitorName}
                 style={styles.formInput}
+                labelBgColor={DarkTheme.bg.card}
+                containerStyle={{ marginTop: SPACING.md }}
               />
 
-              <Text style={styles.formInputLabel}>Flat Number</Text>
-              <TextInput
-                placeholder="e.g. 101A"
+              <FloatingLabelInput
+                label="Flat Number"
                 value={flatNumber}
                 onChangeText={setFlatNumber}
                 style={styles.formInput}
+                labelBgColor={DarkTheme.bg.card}
+                containerStyle={{ marginTop: SPACING.md }}
               />
 
-              <Text style={styles.formInputLabel}>Visitor Type</Text>
+              <Text style={[styles.formInputLabel, { marginTop: SPACING.md, marginBottom: 8 }]}>Visitor Type</Text>
               <View style={styles.regTypeRow}>
                 {(['guest', 'delivery', 'maid'] as const).map((t) => (
                   <TouchableOpacity
@@ -351,15 +356,14 @@ const GuardVisitorEntryScreen = () => {
               </View>
 
               {visitorType === 'delivery' && (
-                <>
-                  <Text style={styles.formInputLabel}>Delivery Company</Text>
-                  <TextInput
-                    placeholder="e.g. Amazon, Zomato"
-                    value={company}
-                    onChangeText={setCompany}
-                    style={styles.formInput}
-                  />
-                </>
+                <FloatingLabelInput
+                  label="Delivery Company"
+                  value={company}
+                  onChangeText={setCompany}
+                  style={styles.formInput}
+                  labelBgColor={DarkTheme.bg.card}
+                  containerStyle={{ marginTop: SPACING.md }}
+                />
               )}
 
               <TouchableOpacity 

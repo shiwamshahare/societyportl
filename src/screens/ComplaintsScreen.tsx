@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, SafeAreaView, Alert } from 'react-native';
 import { DropdownPicker } from '../components/ui/DropdownPicker';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext';
@@ -149,18 +150,20 @@ const ComplaintsScreen = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>New Complaint</Text>
-            <TextInput
-              placeholder="Issue Description"
+            <FloatingLabelInput
+              label="Issue Description"
               value={newComplaint.issue}
               onChangeText={text => setNewComplaint({ ...newComplaint, issue: text })}
               style={[styles.input, { minHeight: 96 }]}
               multiline
+              labelBgColor={DarkTheme.bg.card}
             />
-            <TextInput
-              placeholder="Flat Number"
+            <FloatingLabelInput
+              label="Flat Number"
               value={newComplaint.flat}
               onChangeText={text => setNewComplaint({ ...newComplaint, flat: text })}
               style={styles.input}
+              labelBgColor={DarkTheme.bg.card}
             />
             <View style={{ marginBottom: SPACING.md }}>
               <Text style={[styles.pickerLabel, { marginBottom: 8 }]}>Priority:</Text>

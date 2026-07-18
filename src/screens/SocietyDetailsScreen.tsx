@@ -13,6 +13,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { SPACING, BORDER_RADIUS } from '../constants/layout';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
+import { DarkTheme } from '../utils/theme';
 
 const SocietyDetailsScreen = ({ navigation }: { navigation: any }) => {
   const [formData, setFormData] = useState({
@@ -65,65 +67,60 @@ const SocietyDetailsScreen = ({ navigation }: { navigation: any }) => {
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           {/* Phone Field */}
-          <View style={styles.phoneInputContainer}>
-            <Text style={styles.countryCode}>+91</Text>
-            <TextInput
-              style={styles.phoneInput}
-              placeholder="Society manager's mobile number"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              keyboardType="phone-pad"
-              maxLength={10}
-              value={formData.managerPhone}
-              onChangeText={(text) => setFormData({ ...formData, managerPhone: text.replace(/[^0-9]/g, '') })}
-            />
-            <TouchableOpacity style={styles.contactIcon} activeOpacity={0.7}>
-              <Ionicons name="person-outline" size={20} color="rgba(255, 255, 255, 0.5)" />
-            </TouchableOpacity>
-          </View>
+          <FloatingLabelInput
+            label="Society manager's mobile number"
+            leftComponent={<Text style={styles.countryCode}>+91</Text>}
+            rightComponent={
+              <TouchableOpacity style={styles.contactIcon} activeOpacity={0.7}>
+                <Ionicons name="person-outline" size={20} color="rgba(255, 255, 255, 0.5)" />
+              </TouchableOpacity>
+            }
+            style={styles.phoneInputContainer}
+            keyboardType="phone-pad"
+            maxLength={10}
+            value={formData.managerPhone}
+            onChangeText={(text) => setFormData({ ...formData, managerPhone: text.replace(/[^0-9]/g, '') })}
+          />
 
           {/* Manager's Name */}
           <View style={styles.inputGroup}>
-            <TextInput
-              style={styles.input}
-              placeholder="Society manager's name"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
+            <FloatingLabelInput
+              label="Society manager's name"
               value={formData.managerName}
               onChangeText={(text) => setFormData({ ...formData, managerName: text })}
+              style={styles.input}
             />
           </View>
 
           {/* Society Name */}
           <View style={styles.inputGroup}>
-            <TextInput
-              style={styles.input}
-              placeholder="Society name"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
+            <FloatingLabelInput
+              label="Society name"
               value={formData.societyName}
               onChangeText={(text) => setFormData({ ...formData, societyName: text })}
+              style={styles.input}
             />
           </View>
 
           {/* City */}
           <View style={styles.inputGroup}>
-            <TextInput
-              style={styles.input}
-              placeholder="City"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
+            <FloatingLabelInput
+              label="City"
               value={formData.city}
               onChangeText={(text) => setFormData({ ...formData, city: text })}
+              style={styles.input}
             />
           </View>
 
           {/* Description (Optional) */}
           <View style={styles.inputGroup}>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Description ( Optional )"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
+            <FloatingLabelInput
+              label="Description ( Optional )"
               multiline={true}
               numberOfLines={4}
               value={formData.description}
               onChangeText={(text) => setFormData({ ...formData, description: text })}
+              style={[styles.input, styles.textArea]}
             />
           </View>
         </ScrollView>

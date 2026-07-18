@@ -6,6 +6,7 @@ import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, TOUCH_TARGET, BORDER_RADIUS } from '../constants/layout';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 
 const PollsScreen = () => {
   const { colors } = useTheme();
@@ -210,22 +211,21 @@ const PollsScreen = () => {
               </View>
 
               <ScrollView contentContainerStyle={{ paddingBottom: SPACING.md }}>
-                <Text style={styles.inputLabel}>Question</Text>
-                <TextInput
-                  placeholder="Poll Question"
-                  placeholderTextColor={DarkTheme.text.tertiary}
+                <FloatingLabelInput
+                  label="Poll Question"
                   value={newPoll.question}
                   onChangeText={text => setNewPoll({ ...newPoll, question: text })}
                   style={styles.input}
+                  labelBgColor={DarkTheme.bg.card}
+                  containerStyle={{ marginTop: SPACING.md }}
                 />
 
-                <Text style={styles.inputLabel}>Options</Text>
+                <Text style={[styles.inputLabel, { marginTop: SPACING.md, marginBottom: 8 }]}>Options</Text>
                 <View style={styles.optionsInputContainer}>
                   {newPoll.options.map((option, index) => (
                     <View key={index} style={styles.optionInput}>
-                      <TextInput
-                        placeholder={`Option ${index + 1}`}
-                        placeholderTextColor={DarkTheme.text.tertiary}
+                      <FloatingLabelInput
+                        label={`Option ${index + 1}`}
                         value={option}
                         onChangeText={text => {
                           const options = [...newPoll.options];
@@ -233,6 +233,7 @@ const PollsScreen = () => {
                           setNewPoll({ ...newPoll, options });
                         }}
                         style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                        labelBgColor={DarkTheme.bg.card}
                       />
                       {index > 1 && (
                         <TouchableOpacity
@@ -257,13 +258,13 @@ const PollsScreen = () => {
                   </TouchableOpacity>
                 </View>
 
-                <Text style={styles.inputLabel}>End Date</Text>
-                <TextInput
-                  placeholder="End Date (YYYY-MM-DD)"
-                  placeholderTextColor={DarkTheme.text.tertiary}
+                <FloatingLabelInput
+                  label="End Date (YYYY-MM-DD)"
                   value={newPoll.endDate}
                   onChangeText={text => setNewPoll({ ...newPoll, endDate: text })}
                   style={styles.input}
+                  labelBgColor={DarkTheme.bg.card}
+                  containerStyle={{ marginTop: SPACING.md }}
                 />
               </ScrollView>
 

@@ -5,6 +5,7 @@ import { useTheme } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, TOUCH_TARGET, BORDER_RADIUS } from '../constants/layout';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 
 const ResidentsScreen = () => {
   const { colors } = useTheme();
@@ -123,13 +124,14 @@ const ResidentsScreen = () => {
       )}
 
       <View style={styles.searchContainer}>
-        <TextInput
-          placeholder="Search residents..."
+        <FloatingLabelInput
+          label="Search residents..."
           value={searchTerm}
           onChangeText={setSearchTerm}
           style={styles.searchInput}
+          rightComponent={<Ionicons name="search-outline" size={20} color="#6B7280" style={{ marginRight: 8 }} />}
+          containerStyle={{ flex: 1, marginRight: 0 }}
         />
-        <Ionicons name="search-outline" size={20} color="#6B7280" />
       </View>
 
       {(filteredResidents.length === 0) ? (
@@ -164,36 +166,41 @@ const ResidentsScreen = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add New Resident</Text>
-            <TextInput
-              placeholder="Full Name"
+            <FloatingLabelInput
+              label="Full Name"
               value={newResident.name}
               onChangeText={text => setNewResident({ ...newResident, name: text })}
               style={styles.input}
+              labelBgColor={DarkTheme.bg.card}
             />
-            <TextInput
-              placeholder="Flat Number"
+            <FloatingLabelInput
+              label="Flat Number"
               value={newResident.flat}
               onChangeText={text => setNewResident({ ...newResident, flat: text })}
               style={styles.input}
+              labelBgColor={DarkTheme.bg.card}
             />
-            <TextInput
-              placeholder="Tower/Building"
+            <FloatingLabelInput
+              label="Tower/Building"
               value={newResident.tower}
               onChangeText={text => setNewResident({ ...newResident, tower: text })}
               style={styles.input}
+              labelBgColor={DarkTheme.bg.card}
             />
-            <TextInput
-              placeholder="Phone Number"
+            <FloatingLabelInput
+              label="Phone Number"
               value={newResident.phone}
               onChangeText={text => setNewResident({ ...newResident, phone: text })}
               style={styles.input}
+              labelBgColor={DarkTheme.bg.card}
             />
-            <TextInput
-              placeholder="Email Address"
+            <FloatingLabelInput
+              label="Email Address"
               value={newResident.email}
               onChangeText={text => setNewResident({ ...newResident, email: text })}
               style={styles.input}
               autoCapitalize="none"
+              labelBgColor={DarkTheme.bg.card}
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity

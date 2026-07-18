@@ -20,6 +20,7 @@ import { useContext } from 'react';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, BORDER_RADIUS } from '../constants/layout';
 import { CustomDatePicker } from '../components/ui/DatePicker';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 
 type RootStackParamList = {
   Login: undefined;
@@ -172,27 +173,24 @@ const SignupScreen = ({ navigation, route }: { navigation: SignupScreenNavigatio
           </View>
 
           {/* First Name Input */}
-          <TextInput
-            placeholder="First name"
-            placeholderTextColor="rgba(255, 255, 255, 0.35)"
+          <FloatingLabelInput
+            label="First name"
             value={firstName}
             onChangeText={setFirstName}
             style={styles.input}
           />
 
           {/* Last Name Input */}
-          <TextInput
-            placeholder="Last name"
-            placeholderTextColor="rgba(255, 255, 255, 0.35)"
+          <FloatingLabelInput
+            label="Last name"
             value={lastName}
             onChangeText={setLastName}
             style={styles.input}
           />
 
           {/* Email ID Input */}
-          <TextInput
-            placeholder="Email Id"
-            placeholderTextColor="rgba(255, 255, 255, 0.35)"
+          <FloatingLabelInput
+            label="Email Id"
             value={emailId}
             onChangeText={setEmailId}
             keyboardType="email-address"
@@ -201,17 +199,13 @@ const SignupScreen = ({ navigation, route }: { navigation: SignupScreenNavigatio
           />
 
           {/* Mobile Number Floating Input */}
-          <View style={{ position: 'relative', marginBottom: 20 }}>
-            <View style={styles.floatingLabelContainer}>
-              <Text style={styles.floatingLabelText}>Mobile Number</Text>
-            </View>
-            <TextInput
-              value={mobileNumber}
-              onChangeText={setMobileNumber}
-              keyboardType="phone-pad"
-              style={[styles.input, { borderColor: 'rgba(255, 255, 255, 0.18)', marginBottom: 0 }]}
-            />
-          </View>
+          <FloatingLabelInput
+            label="Mobile Number"
+            value={mobileNumber}
+            onChangeText={setMobileNumber}
+            keyboardType="phone-pad"
+            style={styles.input}
+          />
 
           {/* Date Of Birth Picker */}
           <TouchableOpacity

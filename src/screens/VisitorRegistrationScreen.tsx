@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { DropdownPicker } from '../components/ui/DropdownPicker';
 import { CustomDatePicker } from '../components/ui/DatePicker';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
 import { DarkTheme } from '../utils/theme';
@@ -38,38 +39,33 @@ const VisitorRegistrationScreen = () => {
       </View>
 
       <View style={styles.formContainer}>
-        <TextInput
-          placeholder="Visitor Name"
-          placeholderTextColor={DarkTheme.text.tertiary}
+        <FloatingLabelInput
+          label="Visitor Name"
           value={visitorName}
           onChangeText={setVisitorName}
           style={styles.input}
         />
-        <TextInput
-          placeholder="Phone Number"
-          placeholderTextColor={DarkTheme.text.tertiary}
+        <FloatingLabelInput
+          label="Phone Number"
           value={visitorPhone}
           onChangeText={setVisitorPhone}
           keyboardType="phone-pad"
           style={styles.input}
         />
-        <TextInput
-          placeholder="Flat Number"
-          placeholderTextColor={DarkTheme.text.tertiary}
+        <FloatingLabelInput
+          label="Flat Number"
           value={visitorFlat}
           onChangeText={setVisitorFlat}
           style={styles.input}
         />
-        <TextInput
-          placeholder="Tower/Building"
-          placeholderTextColor={DarkTheme.text.tertiary}
+        <FloatingLabelInput
+          label="Tower/Building"
           value={visitorTower}
           onChangeText={setVisitorTower}
           style={styles.input}
         />
-        <TextInput
-          placeholder="Purpose of Visit"
-          placeholderTextColor={DarkTheme.text.tertiary}
+        <FloatingLabelInput
+          label="Purpose of Visit"
           value={visitPurpose}
           onChangeText={setVisitPurpose}
           style={styles.input}

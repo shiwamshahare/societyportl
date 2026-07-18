@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { DropdownPicker } from '../components/ui/DropdownPicker';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext';
@@ -104,18 +105,20 @@ const TowersScreen = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add New Tower</Text>
-            <TextInput
-              placeholder="Tower Name (e.g., Tower A)"
+            <FloatingLabelInput
+              label="Tower Name (e.g., Tower A)"
               value={newTower.name}
               onChangeText={text => setNewTower({ ...newTower, name: text })}
               style={styles.input}
+              labelBgColor={DarkTheme.bg.card}
             />
-            <TextInput
-              placeholder="Number of Flats"
+            <FloatingLabelInput
+              label="Number of Flats"
               value={newTower.flats}
               onChangeText={text => setNewTower({ ...newTower, flats: text })}
               style={styles.input}
               keyboardType="number-pad"
+              labelBgColor={DarkTheme.bg.card}
             />
             <View style={{ marginBottom: SPACING.md }}>
               <Text style={[styles.pickerLabel, { marginBottom: 8 }]}>Status:</Text>

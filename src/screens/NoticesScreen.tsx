@@ -7,6 +7,7 @@ import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, TOUCH_TARGET, BORDER_RADIUS } from '../constants/layout';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 
 const NoticesScreen = () => {
   const { colors } = useTheme();
@@ -349,64 +350,44 @@ const NoticesScreen = () => {
             </View>
 
             {/* Title Input */}
-            <View style={{ marginBottom: SPACING.md }}>
-              <Text
-                style={{
-                  fontWeight: '500' as const,
-                  marginBottom: SPACING.xs,
-                  color: DarkTheme.text.secondary,
-                  fontSize: 14 // label2 size
-                }}
-              >
-                Title
-              </Text>
-              <TextInput
-                placeholder="Enter notice title"
-                value={newNoticeTitle}
-                onChangeText={setNewNoticeTitle}
-                style={{
-                  height: TOUCH_TARGET.comfortable,
-                  borderWidth: StyleSheet.hairlineWidth,
-                  borderColor: DarkTheme.border.input,
-                  backgroundColor: DarkTheme.bg.input,
-                  color: DarkTheme.text.primary,
-                  borderRadius: BORDER_RADIUS.lg,
-                  paddingHorizontal: SPACING.md,
-                  fontSize: 16, // body1 size
-                }}
-              />
-            </View>
+            <FloatingLabelInput
+              label="Title"
+              value={newNoticeTitle}
+              onChangeText={setNewNoticeTitle}
+              style={{
+                height: TOUCH_TARGET.comfortable,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: DarkTheme.border.input,
+                backgroundColor: DarkTheme.bg.input,
+                color: DarkTheme.text.primary,
+                borderRadius: BORDER_RADIUS.lg,
+                paddingHorizontal: SPACING.md,
+                fontSize: 16, // body1 size
+              }}
+              labelBgColor={DarkTheme.bg.card}
+              containerStyle={{ marginBottom: SPACING.md }}
+            />
 
             {/* Content Input */}
-            <View style={{ marginBottom: SPACING.md }}>
-              <Text
-                style={{
-                  fontWeight: '500' as const,
-                  marginBottom: SPACING.xs,
-                  color: DarkTheme.text.secondary,
-                  fontSize: 14 // label2 size
-                }}
-              >
-                Content
-              </Text>
-              <TextInput
-                placeholder="Enter notice details"
-                value={newNoticeContent}
-                onChangeText={setNewNoticeContent}
-                style={{
-                  height: 120, // Keep fixed height for multiline
-                  borderWidth: StyleSheet.hairlineWidth,
-                  borderColor: DarkTheme.border.input,
-                  backgroundColor: DarkTheme.bg.input,
-                  color: DarkTheme.text.primary,
-                  borderRadius: BORDER_RADIUS.lg,
-                  paddingHorizontal: SPACING.md,
-                  textAlignVertical: 'top',
-                  fontSize: 16, // body1 size
-                }}
-                multiline={true}
-              />
-            </View>
+            <FloatingLabelInput
+              label="Content"
+              value={newNoticeContent}
+              onChangeText={setNewNoticeContent}
+              style={{
+                height: 120, // Keep fixed height for multiline
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: DarkTheme.border.input,
+                backgroundColor: DarkTheme.bg.input,
+                color: DarkTheme.text.primary,
+                borderRadius: BORDER_RADIUS.lg,
+                paddingHorizontal: SPACING.md,
+                textAlignVertical: 'top',
+                fontSize: 16, // body1 size
+              }}
+              multiline={true}
+              labelBgColor={DarkTheme.bg.card}
+              containerStyle={{ marginBottom: SPACING.md }}
+            />
 
             {/* Buttons */}
             <View style={{ flexDirection: 'row', gap: SPACING.md }}>

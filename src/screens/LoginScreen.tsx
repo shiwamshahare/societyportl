@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BORDER_RADIUS, SPACING } from '../constants/layout';
 import { AuthContext } from '../context/AuthContext';
 import { DarkTheme } from '../utils/theme';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -267,25 +268,26 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
               <Text style={styles.stepTitle}>Enter your Mobile Number</Text>
 
               {/* Real Phone Input */}
-              <View style={styles.inputBorderContainer}>
-                <TouchableOpacity style={styles.phoneDropdown} activeOpacity={0.7}>
-                  <Text style={styles.countryCodeText}>+91 ▾</Text>
-                </TouchableOpacity>
-                <View style={styles.separatorLine} />
-                <TextInput
-                  ref={phoneInputRef}
-                  style={styles.phoneInput}
-                  placeholder="Mobile number"
-                  placeholderTextColor={DarkTheme.text.tertiary}
-                  keyboardType="phone-pad"
-                  maxLength={10}
-                  value={phone}
-                  onChangeText={(text) => {
-                    setPhone(text.replace(/[^0-9]/g, ''));
-                    if (error) setError(null);
-                  }}
-                />
-              </View>
+              <FloatingLabelInput
+                ref={phoneInputRef}
+                label="Mobile number"
+                leftComponent={
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity style={styles.phoneDropdown} activeOpacity={0.7}>
+                      <Text style={styles.countryCodeText}>+91 ▾</Text>
+                    </TouchableOpacity>
+                    <View style={[styles.separatorLine, { marginRight: 0 }]} />
+                  </View>
+                }
+                style={styles.inputBorderContainer}
+                keyboardType="phone-pad"
+                maxLength={10}
+                value={phone}
+                onChangeText={(text) => {
+                  setPhone(text.replace(/[^0-9]/g, ''));
+                  if (error) setError(null);
+                }}
+              />
 
               {error && (
                 <View style={styles.innerErrorContainer}>
@@ -371,22 +373,19 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
               <Text style={styles.stepTitle}>Enter your Corporate Email</Text>
 
               {/* Real Email Input */}
-              <View style={styles.inputBorderContainer}>
-                <TextInput
-                  ref={emailInputRef}
-                  style={styles.phoneInput}
-                  placeholder="Email Id"
-                  placeholderTextColor={DarkTheme.text.tertiary}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  value={email}
-                  onChangeText={(text) => {
-                    setEmail(text);
-                    if (error) setError(null);
-                  }}
-                />
-              </View>
+              <FloatingLabelInput
+                ref={emailInputRef}
+                label="Email Id"
+                style={styles.inputBorderContainer}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (error) setError(null);
+                }}
+              />
 
               {error && (
                 <View style={styles.innerErrorContainer}>
@@ -466,20 +465,17 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
             <Text style={styles.emailDisplayLabel}>{email}</Text>
 
             {/* Password input */}
-            <View style={styles.inputBorderContainer}>
-              <TextInput
-                ref={passwordInputRef}
-                style={styles.phoneInput}
-                placeholder="Password"
-                placeholderTextColor={DarkTheme.text.tertiary}
-                secureTextEntry={true}
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  if (error) setError(null);
-                }}
-              />
-            </View>
+            <FloatingLabelInput
+              ref={passwordInputRef}
+              label="Password"
+              style={styles.inputBorderContainer}
+              secureTextEntry={true}
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (error) setError(null);
+              }}
+            />
 
             {error && (
               <View style={styles.innerErrorContainer}>

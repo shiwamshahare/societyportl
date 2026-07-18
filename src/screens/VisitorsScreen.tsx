@@ -6,6 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 import { VisitorContext, VisitorType, VisitorLogEntry, PreApprovedInvite } from '../context/VisitorContext';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, TOUCH_TARGET, BORDER_RADIUS } from '../constants/layout';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 
 const { width } = Dimensions.get('window');
 
@@ -269,13 +270,13 @@ const VisitorsScreen = () => {
             </View>
 
             <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-              <Text style={styles.inputLabel}>Guest Name</Text>
-              <TextInput
-                placeholder="e.g. John Doe"
-                placeholderTextColor="rgba(255,255,255,0.4)"
+              <FloatingLabelInput
+                label="Guest Name"
                 value={guestName}
                 onChangeText={setGuestName}
                 style={styles.modalInput}
+                labelBgColor="#1F2937"
+                containerStyle={{ marginTop: SPACING.md }}
               />
 
               <Text style={styles.inputLabel}>Visitor Type</Text>
@@ -293,13 +294,13 @@ const VisitorsScreen = () => {
                 ))}
               </View>
 
-              <Text style={styles.inputLabel}>Date & Time (Optional)</Text>
-              <TextInput
-                placeholder="e.g. 23 Jul 2025 | 11:00 am"
-                placeholderTextColor="rgba(255,255,255,0.4)"
+              <FloatingLabelInput
+                label="Date & Time (Optional)"
                 value={dateTime}
                 onChangeText={setDateTime}
                 style={styles.modalInput}
+                labelBgColor="#1F2937"
+                containerStyle={{ marginTop: SPACING.md }}
               />
 
               <TouchableOpacity

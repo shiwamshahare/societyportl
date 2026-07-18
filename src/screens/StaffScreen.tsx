@@ -5,6 +5,7 @@ import { useTheme } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, TOUCH_TARGET, BORDER_RADIUS } from '../constants/layout';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 
 const StaffScreen = () => {
   const { colors } = useTheme();
@@ -148,30 +149,34 @@ const StaffScreen = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add New Staff Member</Text>
-            <TextInput
-              placeholder="Full Name"
-              value={newStaff.name}
-              onChangeText={text => setNewStaff({ ...newStaff, name: text })}
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Role (e.g., Security Guard, Technician)"
-              value={newStaff.role}
-              onChangeText={text => setNewStaff({ ...newStaff, role: text })}
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Shift (e.g., Morning 6AM-2PM)"
-              value={newStaff.shift}
-              onChangeText={text => setNewStaff({ ...newStaff, shift: text })}
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Contact Number"
-              value={newStaff.contact}
-              onChangeText={text => setNewStaff({ ...newStaff, contact: text })}
-              style={styles.input}
-            />
+            <FloatingLabelInput
+               label="Full Name"
+               value={newStaff.name}
+               onChangeText={text => setNewStaff({ ...newStaff, name: text })}
+               style={styles.input}
+               labelBgColor={DarkTheme.bg.card}
+             />
+             <FloatingLabelInput
+               label="Role (e.g., Security Guard, Technician)"
+               value={newStaff.role}
+               onChangeText={text => setNewStaff({ ...newStaff, role: text })}
+               style={styles.input}
+               labelBgColor={DarkTheme.bg.card}
+             />
+             <FloatingLabelInput
+               label="Shift (e.g., Morning 6AM-2PM)"
+               value={newStaff.shift}
+               onChangeText={text => setNewStaff({ ...newStaff, shift: text })}
+               style={styles.input}
+               labelBgColor={DarkTheme.bg.card}
+             />
+             <FloatingLabelInput
+               label="Contact Number"
+               value={newStaff.contact}
+               onChangeText={text => setNewStaff({ ...newStaff, contact: text })}
+               style={styles.input}
+               labelBgColor={DarkTheme.bg.card}
+             />
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 activeOpacity={0.7}
