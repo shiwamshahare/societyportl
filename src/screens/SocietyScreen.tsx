@@ -191,7 +191,7 @@ const SocietyScreen = ({ navigation }: { navigation: any }) => {
         <TouchableOpacity
           style={[styles.floatingBadge, styles.badgeDigitalId]}
           activeOpacity={0.8}
-          onPress={() => handleBadgePress('Profile')}
+          onPress={() => handleBadgePress('DigitalId')}
         >
           <Text style={styles.badgeTitle}>Digital ID</Text>
           <Text style={styles.badgeDesc} numberOfLines={2}>

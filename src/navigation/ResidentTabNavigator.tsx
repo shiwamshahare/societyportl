@@ -10,6 +10,7 @@ import { AuthContext } from '../context/AuthContext';
 // Screens
 import AlertsScreen from '../screens/AlertsScreen';
 import AmenitiesScreen from '../screens/AmenitiesScreen';
+import DigitalIdScreen from '../screens/DigitalIdScreen';
 import ComplaintsScreen from '../screens/ComplaintsScreen';
 import HomeScreen from '../screens/HomeScreen';
 import MarketplaceScreen from '../screens/MarketplaceScreen';
@@ -22,18 +23,18 @@ import SocietyScreen from '../screens/SocietyScreen';
 import VisitorRegistrationScreen from '../screens/VisitorRegistrationScreen';
 import VisitorsScreen from '../screens/VisitorsScreen';
 
+import SelectRoleScreen from '@/screens/SelectRoleScreen';
+import SelectTypeScreen from '@/screens/SelectTypeScreen';
 import CorporateDetailsScreen from '../screens/CorporateDetailsScreen';
 import OwnerDocumentsScreen from '../screens/OwnerDocumentsScreen';
 import OwnerIdProofScreen from '../screens/OwnerIdProofScreen';
-import TenantNocScreen from '../screens/TenantNocScreen';
 import SelectCityScreen from '../screens/SelectCityScreen';
 import SelectCompanyScreen from '../screens/SelectCompanyScreen';
 import SelectFlatScreen from '../screens/SelectFlatScreen';
-import SelectRoleScreen from '@/screens/SelectRoleScreen';
 import SelectSocietyScreen from '../screens/SelectSocietyScreen';
-import SelectTypeScreen from '@/screens/SelectTypeScreen';
 import SelectWingScreen from '../screens/SelectWingScreen';
 import SocietyDetailsScreen from '../screens/SocietyDetailsScreen';
+import TenantNocScreen from '../screens/TenantNocScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -175,7 +176,7 @@ const ResidentTabs = () => {
   return (
     <Tab.Navigator
       tabBar={props => <CustomTabBar {...props} />}
-      initialRouteName={user && user.isApproved === false ? "Society" : "Home"}
+      initialRouteName={user && user.isApproved === false ? "Society" : "Amenities"}
       screenOptions={{
         headerShown: false,
       }}
@@ -197,6 +198,7 @@ export const ResidentTabNavigator = () => {
         <Stack.Screen name="ResidentTabs" component={ResidentTabs} />
         <Stack.Screen name="Visitors" component={VisitorsScreen} />
         <Stack.Screen name="Amenities" component={AmenitiesScreen} />
+        <Stack.Screen name="DigitalId" component={DigitalIdScreen} />
         <Stack.Screen name="Notices" component={NoticesScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Complaints" component={ComplaintsScreen} />

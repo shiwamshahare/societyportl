@@ -1,7 +1,9 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Dimensions, ScrollView, TextInput, ActivityIndicator, Image, Modal, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Dimensions, ScrollView, Image, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
+import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import { AuthContext } from '../context/AuthContext';
 import { DarkTheme } from '../utils/theme';
 import { SPACING, TOUCH_TARGET, BORDER_RADIUS } from '../constants/layout';
@@ -20,7 +22,7 @@ interface Booking {
   bookedOn: string;
 }
 
-const AmenitiesScreen = () => {
+const AmenitiesScreen = ({ navigation }: any) => {
   const { colors } = useTheme();
   const { user } = useContext(AuthContext);
   const isAdmin = user?.role === 'admin';
@@ -43,13 +45,18 @@ const AmenitiesScreen = () => {
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
+  // Flat selection state
+  const flatsList = ['Dt Casa Eviva, G 601', 'Dt Casa Eviva, G 602', 'Dt Casa Eviva, A 104'];
+  const [selectedFlat, setSelectedFlat] = useState(flatsList[0]);
+  const [showFlatDropdown, setShowFlatDropdown] = useState(false);
+
   // Local state for bookings history
   const [bookings, setBookings] = useState<Booking[]>([
     {
       id: 'AM10044210170',
       amenityName: 'Football Court',
       subName: '1st small amenity',
-      date: '22 Apr 2025',
+      date: '22 Apr',
       timeSlot: '19:00 - 19:15',
       peopleCount: 2,
       price: 'Free',
@@ -57,13 +64,35 @@ const AmenitiesScreen = () => {
       bookedOn: '22 Apr 2025',
     },
     {
-      id: 'AM10044210155',
-      amenityName: 'Badminton Court',
-      subName: 'Court 1',
-      date: '23 Apr 2025',
-      timeSlot: '11:00 - 12:00',
-      peopleCount: 1,
-      price: '₹ 100',
+      id: 'AM10044210160',
+      amenityName: 'Football Court',
+      subName: '1st small amenity',
+      date: '22 Apr',
+      timeSlot: '18:45 - 19:00',
+      peopleCount: 20,
+      price: '₹ 380',
+      status: 'FAILED',
+      bookedOn: '22 Apr 2025',
+    },
+    {
+      id: 'AM10044210171',
+      amenityName: 'Football Court',
+      subName: '1st small amenity',
+      date: '22 Apr',
+      timeSlot: '18:45 - 19:00',
+      peopleCount: 11,
+      price: 'Free',
+      status: 'EXPIRED',
+      bookedOn: '22 Apr 2025',
+    },
+    {
+      id: 'AM10044210172',
+      amenityName: 'Football Court',
+      subName: '1st small amenity',
+      date: '22 Apr',
+      timeSlot: '00:00 - 00:15',
+      peopleCount: 11,
+      price: '₹ 380',
       status: 'FAILED',
       bookedOn: '22 Apr 2025',
     }
@@ -82,11 +111,14 @@ const AmenitiesScreen = () => {
   };
   const dates = generateDates();
 
-  // Mock time slots
+  const getDayName = (date: Date) => ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][date.getDay()];
+  const getMonthName = (date: Date) => ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][date.getMonth()];
+
+  // Mock time slots (3-column layout)
   const timeSlots = [
     { time: '11:00 AM', available: true },
     { time: '12:00 PM', available: true },
-    { time: '01:00 PM', available: false },
+    { time: '01:00 PM', available: true },
     { time: '02:00 PM', available: true },
     { time: '03:00 PM', available: false },
     { time: '04:00 PM', available: true },
@@ -94,18 +126,24 @@ const AmenitiesScreen = () => {
     { time: '06:00 PM', available: true },
     { time: '07:00 PM', available: false },
     { time: '08:00 PM', available: true },
+    { time: '09:00 PM', available: true },
+    { time: '10:00 PM', available: true },
   ];
 
-  // Mock amenity data
+  // Mock amenity data matching the mockup
   const amenitiesList = [
-    { id: '1', name: 'Pool', icon: 'water-outline', image: require('../../assets/images/amenities/pool.png'), subName: 'Olympic size pool' },
-    { id: '2', name: 'Clubhouse', icon: 'home-outline', image: require('../../assets/images/amenities/clubhouse.png'), subName: 'Central Wing Clubhouse' },
-    { id: '3', name: 'Gym', icon: 'fitness-outline', image: require('../../assets/images/amenities/gym.png'), subName: 'Towers Fitness Gym' },
-    { id: '4', name: 'Garden', icon: 'leaf-outline', image: require('../../assets/images/amenities/garden.png'), subName: 'Lawn and walking garden' },
-    { id: '5', name: 'Theatre', icon: 'film-outline', image: null, subName: 'Mini Cineplex' },
-    { id: '6', name: 'Air Hockey', icon: 'game-controller-outline', image: null, subName: 'Recreation center' },
-    { id: '7', name: 'Badminton Court', icon: 'grid-outline', image: null, subName: 'Court 1 & 2 indoor' },
-    { id: '8', name: 'Banquet Hall', icon: 'cafe-outline', image: null, subName: 'Community party hall' },
+    { id: '1', name: 'Theatre', icon: 'film-outline', image: null, subName: 'Mini Cineplex' },
+    { id: '2', name: 'Air Hockey', icon: 'game-controller-outline', image: null, subName: 'Recreation center' },
+    { id: '3', name: 'Badminton', icon: 'grid-outline', image: null, subName: 'Court 1 & 2 indoor' },
+    { id: '4', name: 'Badminton Court', icon: 'grid-outline', image: null, subName: 'Court 1 & 2 indoor' },
+    { id: '5', name: 'Badminton Test', icon: 'grid-outline', image: null, subName: 'Test Court' },
+    { id: '6', name: 'Banquet Hall', icon: 'cafe-outline', image: null, subName: 'Community party hall' },
+    { id: '7', name: 'Bus Services', icon: 'bus-outline', image: null, subName: 'Shuttle services' },
+    { id: '8', name: 'Bus Services', icon: 'bus-outline', image: null, subName: 'Office Shuttle' },
+    { id: '9', name: 'Carrom Test', icon: 'albums-outline', image: null, subName: 'Indoor games room' },
+    { id: '10', name: 'Centrum Banquet Hall', icon: 'cafe-outline', image: null, subName: 'Premium party hall' },
+    { id: '11', name: 'Cricket Ground', icon: 'trophy-outline', image: null, subName: 'Nets & pitch practice' },
+    { id: '12', name: 'Guest Day Pass', icon: 'card-outline', image: null, subName: 'Day visitor pass' },
   ];
 
   const handleSelectAmenity = (amenity: any) => {
@@ -125,7 +163,7 @@ const AmenitiesScreen = () => {
       id: 'AM' + Math.floor(10000000000 + Math.random() * 90000000000),
       amenityName: selectedAmenity.name,
       subName: selectedAmenity.subName,
-      date: selectedDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
+      date: selectedDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
       timeSlot: selectedTime ? `${selectedTime} - ${parseInt(selectedTime) + 1}:00 ${selectedTime.includes('PM') ? 'PM' : 'AM'}` : '11:00 AM - 12:00 PM',
       peopleCount: (includeFamily ? 1 : 0) + guestCount,
       price: price,
@@ -140,11 +178,40 @@ const AmenitiesScreen = () => {
     alert('Booking Confirmed Successfully!');
   };
 
+  // Background ambient glows
+  const BackgroundGlows = () => (
+    <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+      <Svg height="100%" width="100%">
+        <Defs>
+          <RadialGradient id="glowLeft" cx="10%" cy="35%" rx="40%" ry="25%">
+            <Stop offset="0%" stopColor="#D97706" stopOpacity="0.10" />
+            <Stop offset="100%" stopColor="#000000" stopOpacity="0" />
+          </RadialGradient>
+          <RadialGradient id="glowRight" cx="90%" cy="55%" rx="40%" ry="25%">
+            <Stop offset="0%" stopColor="#0D9488" stopOpacity="0.10" />
+            <Stop offset="100%" stopColor="#000000" stopOpacity="0" />
+          </RadialGradient>
+          <RadialGradient id="glowBottom" cx="30%" cy="85%" rx="35%" ry="20%">
+            <Stop offset="0%" stopColor="#7C3AED" stopOpacity="0.08" />
+            <Stop offset="100%" stopColor="#000000" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#glowLeft)" />
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#glowRight)" />
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#glowBottom)" />
+      </Svg>
+    </View>
+  );
+
   if (isAdmin) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: DarkTheme.bg.primary }}>
         <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn}>
+            <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Amenities Management</Text>
+          <View style={{ width: 40 }} />
         </View>
 
         <View style={styles.container}>
@@ -183,6 +250,35 @@ const AmenitiesScreen = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: DarkTheme.bg.primary }}>
+      <BackgroundGlows />
+
+      {/* Screen Custom Header */}
+      <View style={styles.screenHeader}>
+        <TouchableOpacity
+          onPress={() => {
+            if (activeScreen === 'booking') {
+              setActiveScreen('grid');
+            } else {
+              navigation.goBack();
+            }
+          }}
+          style={styles.headerBackBtn}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="chevron-back" size={24} color={DarkTheme.text.primary} />
+        </TouchableOpacity>
+        <Text style={styles.screenHeaderTitle}>
+          {activeSegment === 'book' ? 'Amenities' : 'My Amenities'}
+        </Text>
+        {activeSegment === 'history' ? (
+          <TouchableOpacity style={styles.headerFilterBtn} activeOpacity={0.7}>
+            <Ionicons name="options-outline" size={22} color={DarkTheme.text.primary} />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 40 }} />
+        )}
+      </View>
+
       {/* Tab Segment Selector */}
       <View style={styles.segmentContainer}>
         <TouchableOpacity
@@ -206,8 +302,9 @@ const AmenitiesScreen = () => {
 
       {activeSegment === 'book' ? (
         activeScreen === 'grid' ? (
-          <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
             {/* Membership Purchase Banner */}
+            <Text style={styles.sectionHeading}>Book Membership</Text>
             <TouchableOpacity style={styles.membershipBanner} activeOpacity={0.9}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.membershipBadge}>MEMBERSHIP</Text>
@@ -218,7 +315,18 @@ const AmenitiesScreen = () => {
               </View>
             </TouchableOpacity>
 
-            <Text style={styles.sectionHeading}>Select Amenity</Text>
+            {/* Book Amenity Section Header Row */}
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeading}>Book Amenity</Text>
+              <TouchableOpacity
+                style={styles.flatSelectorBtn}
+                onPress={() => setShowFlatDropdown(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.flatSelectorText}>{selectedFlat}</Text>
+                <Ionicons name="chevron-down" size={14} color={DarkTheme.text.secondary} style={{ marginLeft: 4 }} />
+              </TouchableOpacity>
+            </View>
             
             {/* 2-column Grid of Amenities */}
             <View style={styles.gridContainer}>
@@ -230,14 +338,10 @@ const AmenitiesScreen = () => {
                   onPress={() => handleSelectAmenity(item)}
                 >
                   <View style={styles.gridItemIconBg}>
-                    {item.image ? (
-                      <Image source={item.image} style={styles.gridItemImg} />
-                    ) : (
-                      <Ionicons name={item.icon as any} size={24} color={DarkTheme.accent.gold} />
-                    )}
+                    <Ionicons name={item.icon as any} size={20} color={DarkTheme.accent.gold} />
                   </View>
                   <View style={styles.gridItemTextContainer}>
-                    <Text style={styles.gridItemTitle}>{item.name}</Text>
+                    <Text style={styles.gridItemTitle} numberOfLines={1}>{item.name}</Text>
                     <Text style={styles.gridItemSubTitle} numberOfLines={1}>{item.subName}</Text>
                   </View>
                 </TouchableOpacity>
@@ -246,20 +350,22 @@ const AmenitiesScreen = () => {
           </ScrollView>
         ) : (
           /* Slots Selection Screen */
-          <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
             <View style={styles.detailHeader}>
-              <TouchableOpacity onPress={() => setActiveScreen('grid')} style={styles.backButton}>
-                <Ionicons name="chevron-back" size={24} color={DarkTheme.text.primary} />
-              </TouchableOpacity>
-              <Text style={styles.detailHeaderTitle}>Book {selectedAmenity?.name}</Text>
+              <View style={styles.detailHeaderInfo}>
+                <Text style={styles.detailHeaderTitle}>{selectedAmenity?.name}</Text>
+                <TouchableOpacity activeOpacity={0.7} style={styles.infoIconBtn}>
+                  <Ionicons name="information-circle-outline" size={20} color={DarkTheme.text.secondary} />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Date Picker */}
-            <Text style={styles.fieldLabel}>Select Date</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, marginBottom: 24 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, marginBottom: 24, paddingBottom: 4 }}>
               {dates.map((date) => {
                 const dateNum = date.getDate();
-                const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+                const dayName = getDayName(date);
+                const monthName = getMonthName(date);
                 const isSelected = date.toDateString() === selectedDate.toDateString();
                 return (
                   <TouchableOpacity
@@ -270,13 +376,19 @@ const AmenitiesScreen = () => {
                   >
                     <Text style={[styles.dateChipDay, isSelected && styles.dateChipDaySelected]}>{dayName}</Text>
                     <Text style={[styles.dateChipNum, isSelected && styles.dateChipNumSelected]}>{dateNum}</Text>
+                    <Text style={[styles.dateChipMonth, isSelected && styles.dateChipMonthSelected]}>{monthName}</Text>
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
 
-            {/* Time Slot Picker */}
-            <Text style={styles.fieldLabel}>Select Time Slot</Text>
+            {/* Time Slot Picker Section Title */}
+            <View style={styles.slotHeadingRow}>
+              <Text style={styles.fieldLabel}>Court 1</Text>
+              <Text style={styles.slotSubtitleText}>(1 hour slots)</Text>
+            </View>
+
+            {/* Time Slot Picker Grid (3 columns) */}
             <View style={styles.slotsGrid}>
               {timeSlots.map((slot) => {
                 const isSelected = selectedTime === slot.time;
@@ -305,26 +417,6 @@ const AmenitiesScreen = () => {
               })}
             </View>
 
-            {/* Guest Count */}
-            <Text style={styles.fieldLabel}>Add Guests</Text>
-            <View style={styles.guestCounterRow}>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => guestCount > 0 && setGuestCount(guestCount - 1)}
-                style={styles.counterBtn}
-              >
-                <Ionicons name="remove" size={20} color={DarkTheme.text.primary} />
-              </TouchableOpacity>
-              <Text style={styles.counterText}>{guestCount} Guests</Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => setGuestCount(guestCount + 1)}
-                style={styles.counterBtn}
-              >
-                <Ionicons name="add" size={20} color={DarkTheme.text.primary} />
-              </TouchableOpacity>
-            </View>
-
             {/* Proceed to Booking Button */}
             <TouchableOpacity
               activeOpacity={0.7}
@@ -344,63 +436,90 @@ const AmenitiesScreen = () => {
       ) : (
         /* My Bookings History Tab */
         <View style={{ flex: 1 }}>
-          <View style={styles.historySubTabs}>
-            <TouchableOpacity
-              style={[styles.historySubTabBtn, historyTab === 'amenities' && styles.historySubTabBtnActive]}
-              onPress={() => setHistoryTab('amenities')}
-            >
-              <Text style={[styles.historySubTabText, historyTab === 'amenities' && styles.historySubTabTextActive]}>Amenities</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.historySubTabBtn, historyTab === 'membership' && styles.historySubTabBtnActive]}
-              onPress={() => setHistoryTab('membership')}
-            >
-              <Text style={[styles.historySubTabText, historyTab === 'membership' && styles.historySubTabTextActive]}>Membership</Text>
-            </TouchableOpacity>
+          {/* Segment control matching mockup */}
+          <View style={styles.bookingsSegmentWrapper}>
+            <View style={styles.bookingsSegmentContainer}>
+              <TouchableOpacity
+                style={[styles.bookingsSegmentBtn, historyTab === 'amenities' && styles.bookingsSegmentBtnActive]}
+                onPress={() => setHistoryTab('amenities')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.bookingsSegmentText, historyTab === 'amenities' && styles.bookingsSegmentTextActive]}>Amenities</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.bookingsSegmentBtn, historyTab === 'membership' && styles.bookingsSegmentBtnActive]}
+                onPress={() => setHistoryTab('membership')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.bookingsSegmentText, historyTab === 'membership' && styles.bookingsSegmentTextActive]}>Membership</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {historyTab === 'amenities' ? (
             <FlatList
               data={bookings}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={{ padding: 16 }}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }}
+              showsVerticalScrollIndicator={false}
               renderItem={({ item }) => (
-                <View style={styles.bookingHistoryCard}>
+                <View style={styles.bookingCard}>
                   {/* Card Time Header */}
-                  <View style={styles.bookingCardHeader}>
-                    <Text style={styles.bookingCardTimeText}>{item.date} | {item.timeSlot}</Text>
-                    <View style={[
-                      styles.statusBadge,
-                      item.status === 'UPCOMING' && { backgroundColor: 'rgba(16, 185, 129, 0.15)' },
-                      item.status === 'EXPIRED' && { backgroundColor: 'rgba(255, 255, 255, 0.08)' },
-                      item.status === 'FAILED' && { backgroundColor: 'rgba(239, 68, 68, 0.15)' },
-                    ]}>
-                      <Text style={[
-                        styles.statusBadgeText,
-                        item.status === 'UPCOMING' && { color: DarkTheme.status.success },
-                        item.status === 'EXPIRED' && { color: DarkTheme.text.tertiary },
-                        item.status === 'FAILED' && { color: DarkTheme.status.error },
+                  <View style={styles.bookingHeader}>
+                    <Text style={styles.bookingDateText}>{item.date} | {item.timeSlot}</Text>
+                    <View style={styles.bookingHeaderRight}>
+                      <View style={[
+                        styles.bookingStatusBadge,
+                        item.status === 'UPCOMING' && styles.statusUpcoming,
+                        item.status === 'EXPIRED' && styles.statusExpired,
+                        item.status === 'FAILED' && styles.statusFailed,
                       ]}>
-                        {item.status}
-                      </Text>
+                        <Text style={[
+                          styles.bookingStatusText,
+                          item.status === 'UPCOMING' && { color: '#10B981' },
+                          item.status === 'EXPIRED' && { color: '#6B7280' },
+                          item.status === 'FAILED' && { color: '#EF4444' },
+                        ]}>
+                          {item.status}
+                        </Text>
+                      </View>
+                      <TouchableOpacity activeOpacity={0.7} style={styles.bookingMenuBtn}>
+                        <Ionicons name="ellipsis-vertical" size={16} color="#6B7280" />
+                      </TouchableOpacity>
                     </View>
                   </View>
 
                   {/* Card Content Row */}
-                  <View style={styles.bookingCardContent}>
-                    <View style={styles.bookingIconContainer}>
-                      <Ionicons name="fitness-outline" size={24} color={DarkTheme.accent.gold} />
+                  <View style={styles.bookingBody}>
+                    <View style={styles.bookingIconCircle}>
+                      <Ionicons name="football-outline" size={20} color="#10B981" />
                     </View>
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                      <Text style={styles.bookingAmenityTitle}>{item.amenityName}</Text>
-                      <Text style={styles.bookingAmenitySub}>{item.subName}</Text>
-                      <Text style={styles.bookingAmenityMeta}>{item.peopleCount} People / {item.price}</Text>
-                      <Text style={styles.bookingAmenityMeta}>Booked on {item.bookedOn}</Text>
-                      <Text style={styles.bookingIdText}>Booking Id {item.id}</Text>
+                    <View style={styles.bookingTitleBlock}>
+                      <Text style={styles.bookingAmenityName}>{item.amenityName}</Text>
+                      <View style={styles.locationRow}>
+                        <Ionicons name="location-outline" size={12} color="#6B7280" style={{ marginRight: 2 }} />
+                        <Text style={styles.bookingLocationText}>{item.subName}</Text>
+                      </View>
                     </View>
-                    <TouchableOpacity activeOpacity={0.7} style={styles.moreOptionsBtn}>
-                      <Ionicons name="ellipsis-vertical" size={20} color={DarkTheme.text.tertiary} />
-                    </TouchableOpacity>
+                  </View>
+
+                  {/* Card Metadata Row (3 columns) */}
+                  <View style={styles.bookingMetaGrid}>
+                    <View style={styles.bookingMetaCol}>
+                      <View style={styles.peopleCountContainer}>
+                        <Text style={styles.metaLabelText}>{item.peopleCount} People</Text>
+                        <Ionicons name="information-circle-outline" size={10} color="#6B7280" style={{ marginLeft: 2 }} />
+                      </View>
+                      <Text style={styles.metaValueText}>{item.price}</Text>
+                    </View>
+                    <View style={styles.bookingMetaCol}>
+                      <Text style={styles.metaLabelText}>Booked On</Text>
+                      <Text style={styles.metaValueText}>{item.bookedOn}</Text>
+                    </View>
+                    <View style={styles.bookingMetaCol}>
+                      <Text style={styles.metaLabelText}>Booking Id</Text>
+                      <Text style={styles.metaValueText}>{item.id}</Text>
+                    </View>
                   </View>
                 </View>
               )}
@@ -414,6 +533,46 @@ const AmenitiesScreen = () => {
         </View>
       )}
 
+      {/* Flat Selector Dropdown Modal */}
+      <Modal
+        visible={showFlatDropdown}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFlatDropdown(false)}
+      >
+        <TouchableOpacity
+          style={styles.dropdownOverlay}
+          activeOpacity={1}
+          onPress={() => setShowFlatDropdown(false)}
+        >
+          <View style={styles.dropdownContent}>
+            {flatsList.map((flat) => (
+              <TouchableOpacity
+                key={flat}
+                style={[
+                  styles.dropdownItem,
+                  flat === selectedFlat && styles.dropdownItemActive
+                ]}
+                onPress={() => {
+                  setSelectedFlat(flat);
+                  setShowFlatDropdown(false);
+                }}
+              >
+                <Text style={[
+                  styles.dropdownItemText,
+                  flat === selectedFlat && styles.dropdownItemTextActive
+                ]}>
+                  {flat}
+                </Text>
+                {flat === selectedFlat && (
+                  <Ionicons name="checkmark" size={18} color={DarkTheme.accent.gold} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Checkout Bottom Sheet Modal */}
       <Modal
         visible={showCheckoutModal}
@@ -425,67 +584,103 @@ const AmenitiesScreen = () => {
           <View style={styles.modalContent}>
             {/* Sheet Header */}
             <View style={styles.modalHeader}>
-              <View>
-                <Text style={styles.modalTitle}>{selectedAmenity?.name}</Text>
-                <Text style={styles.modalSubtitle}>Slot: {selectedTime} - 1 Hour</Text>
-              </View>
-              <TouchableOpacity onPress={() => setShowCheckoutModal(false)}>
-                <Ionicons name="close" size={24} color={DarkTheme.text.primary} />
+              <TouchableOpacity
+                style={styles.modalCloseBtn}
+                onPress={() => setShowCheckoutModal(false)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close" size={20} color="#FFFFFF" />
               </TouchableOpacity>
+              <View style={styles.modalTitleContainer}>
+                <Text style={styles.modalTitle}>Court 1</Text>
+                <Text style={styles.modalSubtitle}>Slot: {selectedTime} - 12:00 PM</Text>
+              </View>
+              <View style={{ width: 36 }} />
             </View>
 
             {/* Checklist items */}
             <View style={styles.checklist}>
-              <Text style={styles.checklistTitle}>Family Members</Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => setIncludeFamily(!includeFamily)}
-                style={styles.checkRow}
-              >
-                <Ionicons
-                  name={includeFamily ? 'checkbox' : 'square-outline'}
-                  size={24}
-                  color={includeFamily ? DarkTheme.accent.gold : DarkTheme.text.tertiary}
-                />
-                <Text style={styles.checkText}>Sarikasingh Singh</Text>
-              </TouchableOpacity>
+              <View style={styles.checklistSection}>
+                <View style={styles.sectionTitleRow}>
+                  <Text style={styles.sectionSubTitle}>Family Members</Text>
+                  <Text style={styles.sectionPriceTag}>₹ 100/Person</Text>
+                </View>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setIncludeFamily(!includeFamily)}
+                  style={styles.checkboxRow}
+                >
+                  <View style={styles.avatarContainer}>
+                    <Text style={styles.avatarText}>S</Text>
+                  </View>
+                  <Text style={styles.checkboxLabel}>Sarikasingh Singh</Text>
+                  <View style={styles.checkboxIcon}>
+                    <Ionicons
+                      name={includeFamily ? 'checkbox' : 'square-outline'}
+                      size={22}
+                      color={includeFamily ? DarkTheme.accent.gold : DarkTheme.text.tertiary}
+                    />
+                  </View>
+                </TouchableOpacity>
+              </View>
 
-              <Text style={[styles.checklistTitle, { marginTop: 16 }]}>Guests</Text>
-              <View style={styles.guestsAddRow}>
-                <Text style={styles.guestsCountLabel}>{guestCount} Guests Added</Text>
+              <View style={[styles.checklistSection, { marginTop: 16 }]}>
+                <View style={styles.sectionTitleRow}>
+                  <Text style={styles.sectionSubTitle}>Guests</Text>
+                  <Text style={styles.sectionPriceTag}>₹ 150/Person</Text>
+                </View>
+
+                {guestCount > 0 && (
+                  <View style={styles.guestsList}>
+                    {Array.from({ length: guestCount }).map((_, idx) => (
+                      <View key={idx} style={styles.guestRow}>
+                        <Ionicons name="person-outline" size={14} color="#6B7280" />
+                        <Text style={styles.guestNameText}>Guest {idx + 1}</Text>
+                        <TouchableOpacity onPress={() => setGuestCount(Math.max(0, guestCount - 1))}>
+                          <Ionicons name="trash-outline" size={14} color="#EF4444" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={() => setGuestCount(guestCount + 1)}
-                  style={styles.addGuestsBtn}
+                  style={styles.addGuestsOutlineBtn}
                 >
-                  <Text style={styles.addGuestsBtnText}>+ Add Guests</Text>
+                  <Text style={styles.addGuestsOutlineBtnText}>Add Guests</Text>
                 </TouchableOpacity>
               </View>
 
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => setAgreeTerms(!agreeTerms)}
-                style={[styles.checkRow, { marginTop: 24 }]}
+                style={styles.termsCheckboxRow}
               >
                 <Ionicons
                   name={agreeTerms ? 'checkbox' : 'square-outline'}
                   size={20}
                   color={agreeTerms ? DarkTheme.accent.gold : DarkTheme.text.tertiary}
                 />
-                <Text style={styles.termsText}>By proceeding ahead, I agree to Terms and Conditions</Text>
+                <Text style={styles.termsCheckboxLabel}>
+                  By proceeding ahead, I agree to <Text style={styles.underline}>Terms and Conditions</Text>
+                </Text>
               </TouchableOpacity>
             </View>
 
             {/* Bottom Pay Bar */}
-            <View style={styles.payBar}>
+            <View style={styles.modalPayBar}>
               <View>
-                <Text style={styles.payLabel}>{(includeFamily ? 1 : 0) + guestCount} PAID</Text>
-                <Text style={styles.payAmount}>
-                  {selectedAmenity?.name === 'Badminton Court' || selectedAmenity?.name === 'Theatre' ? '₹ 100' : 'Free'}
+                <Text style={styles.modalPayCountText}>
+                  {((includeFamily ? 1 : 0) + guestCount)} PAID
+                </Text>
+                <Text style={styles.modalPayPriceText}>
+                  ₹ {((includeFamily ? 1 : 0) * 100) + (guestCount * 150)}
                 </Text>
               </View>
-              <TouchableOpacity activeOpacity={0.8} onPress={handlePayNow} style={styles.payNowBtn}>
-                <Text style={styles.payNowBtnText}>Pay Now</Text>
+              <TouchableOpacity activeOpacity={0.8} onPress={handlePayNow} style={styles.modalPayNowBtn}>
+                <Text style={styles.modalPayNowBtnText}>Pay Now</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -501,15 +696,42 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: DarkTheme.bg.card,
     padding: SPACING.lg,
     borderBottomWidth: 1,
     borderColor: DarkTheme.border.subtle,
   },
+  headerBackBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   headerTitle: {
     color: DarkTheme.text.primary,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
+  },
+  screenHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
+  screenHeaderTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  headerFilterBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   listContent: {
     paddingBottom: SPACING.md,
@@ -561,49 +783,77 @@ const styles = StyleSheet.create({
   },
   segmentContainer: {
     flexDirection: 'row',
-    backgroundColor: DarkTheme.bg.card,
-    margin: 16,
-    borderRadius: 10,
-    padding: 4,
+    backgroundColor: '#0C0C0E',
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    padding: 3,
     borderWidth: 1,
-    borderColor: DarkTheme.border.subtle,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   segmentButton: {
     flex: 1,
     paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 9,
   },
   segmentButtonActive: {
-    backgroundColor: DarkTheme.bg.elevated,
+    backgroundColor: '#FFFFFF',
   },
   segmentText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: DarkTheme.text.secondary,
+    color: '#6B7280',
   },
   segmentTextActive: {
-    color: DarkTheme.accent.gold,
+    color: '#000000',
   },
   scrollContainer: {
     paddingHorizontal: 16,
     paddingBottom: 32,
   },
+  sectionHeading: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginVertical: 16,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  flatSelectorBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  flatSelectorText: {
+    color: '#D97706',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   membershipBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E1B4B',
+    backgroundColor: 'rgba(31, 29, 43, 0.4)',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#312E81',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   membershipBadge: {
     color: '#A78BFA',
     fontSize: 10,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   membershipTitle: {
     color: '#fff',
@@ -612,62 +862,53 @@ const styles = StyleSheet.create({
     width: '90%',
   },
   buyNowBtn: {
-    backgroundColor: DarkTheme.accent.gold,
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   buyNowText: {
-    color: '#fff',
+    color: '#000000',
     fontSize: 12,
     fontWeight: 'bold',
-  },
-  sectionHeading: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: DarkTheme.text.primary,
-    marginBottom: 16,
   },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 10,
   },
   gridItem: {
-    width: (width - 44) / 2,
-    backgroundColor: DarkTheme.bg.card,
+    width: (width - 42) / 2,
+    backgroundColor: 'rgba(12, 12, 14, 0.6)',
     borderWidth: 1,
-    borderColor: DarkTheme.border.subtle,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
-    padding: 16,
-    alignItems: 'flex-start',
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   gridItemIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: DarkTheme.bg.input,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
-    overflow: 'hidden',
-  },
-  gridItemImg: {
-    width: '100%',
-    height: '100%',
+    marginRight: 10,
   },
   gridItemTextContainer: {
-    width: '100%',
+    flex: 1,
+    justifyContent: 'center',
   },
   gridItemTitle: {
-    color: DarkTheme.text.primary,
-    fontSize: 14,
+    color: '#FFFFFF',
+    fontSize: 13,
     fontWeight: '600',
   },
   gridItemSubTitle: {
-    color: DarkTheme.text.tertiary,
-    fontSize: 11,
+    color: '#6B7280',
+    fontSize: 10,
     marginTop: 2,
   },
   detailHeader: {
@@ -676,221 +917,271 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     marginBottom: 16,
   },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
+  detailHeaderInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   detailHeaderTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: DarkTheme.text.primary,
+    color: '#FFFFFF',
+  },
+  infoIconBtn: {
+    padding: 6,
+    marginLeft: 4,
   },
   fieldLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: DarkTheme.text.primary,
-    marginBottom: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  slotHeadingRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 16,
+  },
+  slotSubtitleText: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginLeft: 6,
   },
   dateChip: {
-    minWidth: 60,
-    height: 70,
+    width: 58,
+    height: 80,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: DarkTheme.bg.card,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderWidth: 1,
-    borderColor: DarkTheme.border.subtle,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 12,
   },
   dateChipSelected: {
-    borderColor: DarkTheme.accent.gold,
-    backgroundColor: 'rgba(217, 119, 6, 0.1)',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
   },
   dateChipDay: {
     fontSize: 10,
-    color: DarkTheme.text.tertiary,
+    color: '#6B7280',
     fontWeight: '600',
     textTransform: 'uppercase',
   },
   dateChipDaySelected: {
-    color: DarkTheme.accent.gold,
+    color: '#000000',
   },
   dateChipNum: {
     fontSize: 18,
-    color: DarkTheme.text.primary,
-    fontWeight: 'bold',
-    marginTop: 4,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    marginVertical: 2,
   },
   dateChipNumSelected: {
-    color: DarkTheme.accent.gold,
+    color: '#000000',
+  },
+  dateChipMonth: {
+    fontSize: 9,
+    color: '#6B7280',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  dateChipMonthSelected: {
+    color: '#000000',
   },
   slotsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
     marginBottom: 24,
   },
   slotItem: {
-    width: (width - 42) / 2,
-    backgroundColor: DarkTheme.bg.card,
+    width: (width - 32 - 16) / 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderWidth: 1,
-    borderColor: DarkTheme.border.subtle,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   slotItemSelected: {
-    borderColor: DarkTheme.accent.gold,
+    borderColor: '#D97706',
     backgroundColor: 'rgba(217, 119, 6, 0.1)',
   },
   slotItemOccupied: {
-    backgroundColor: DarkTheme.bg.primary,
-    opacity: 0.4,
+    backgroundColor: 'transparent',
+    borderColor: 'rgba(255, 255, 255, 0.03)',
+    opacity: 0.3,
   },
   slotText: {
-    fontSize: 14,
-    color: DarkTheme.text.primary,
+    fontSize: 13,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   slotTextSelected: {
-    color: DarkTheme.accent.gold,
+    color: '#D97706',
   },
   slotTextOccupied: {
-    color: DarkTheme.text.tertiary,
+    color: '#6B7280',
     textDecorationLine: 'line-through',
   },
   occupiedLabel: {
-    fontSize: 9,
-    color: DarkTheme.status.error,
-    marginTop: 4,
-  },
-  guestCounterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: DarkTheme.bg.card,
-    borderWidth: 1,
-    borderColor: DarkTheme.border.subtle,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    justifyContent: 'space-between',
-    marginBottom: 28,
-  },
-  counterBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: DarkTheme.bg.input,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  counterText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: DarkTheme.text.primary,
+    fontSize: 8,
+    color: '#EF4444',
+    marginTop: 2,
   },
   proceedButton: {
-    backgroundColor: DarkTheme.accent.gold,
+    backgroundColor: '#D97706',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 16,
   },
   proceedButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: 'bold',
   },
-  historySubTabs: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderColor: DarkTheme.border.subtle,
-    marginBottom: 12,
-  },
-  historySubTabBtn: {
-    flex: 1,
-    paddingVertical: 14,
+  bookingsSegmentWrapper: {
     alignItems: 'center',
+    marginVertical: 16,
   },
-  historySubTabBtnActive: {
-    borderBottomWidth: 2,
-    borderColor: DarkTheme.accent.gold,
-  },
-  historySubTabText: {
-    fontSize: 14,
-    color: DarkTheme.text.tertiary,
-    fontWeight: '600',
-  },
-  historySubTabTextActive: {
-    color: DarkTheme.text.primary,
-  },
-  bookingHistoryCard: {
-    backgroundColor: 'rgba(17, 24, 39, 0.5)',
+  bookingsSegmentContainer: {
+    flexDirection: 'row',
+    width: '60%',
+    backgroundColor: '#0C0C0E',
     borderWidth: 1,
-    borderColor: DarkTheme.border.subtle,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 24,
+    padding: 2,
+  },
+  bookingsSegmentBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+  },
+  bookingsSegmentBtnActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  bookingsSegmentText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  bookingsSegmentTextActive: {
+    color: '#000000',
+  },
+  bookingCard: {
+    backgroundColor: 'rgba(12, 12, 14, 0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
     marginBottom: 16,
     overflow: 'hidden',
+    padding: 16,
   },
-  bookingCardHeader: {
+  bookingHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: DarkTheme.bg.input,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderColor: DarkTheme.border.subtle,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    paddingBottom: 10,
+    marginBottom: 12,
   },
-  bookingCardTimeText: {
+  bookingDateText: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: DarkTheme.text.primary,
+    color: '#FFFFFF',
   },
-  statusBadge: {
+  bookingHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bookingStatusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
+    borderWidth: 1,
   },
-  statusBadgeText: {
+  statusUpcoming: {
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderColor: 'rgba(16, 185, 129, 0.2)',
+  },
+  statusExpired: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  statusFailed: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+  },
+  bookingStatusText: {
     fontSize: 10,
     fontWeight: 'bold',
   },
-  bookingCardContent: {
-    flexDirection: 'row',
-    padding: 16,
-    alignItems: 'flex-start',
+  bookingMenuBtn: {
+    marginLeft: 8,
+    padding: 4,
   },
-  bookingIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: DarkTheme.bg.input,
+  bookingBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  bookingIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
   },
-  bookingAmenityTitle: {
-    fontSize: 16,
+  bookingTitleBlock: {
+    flex: 1,
+  },
+  bookingAmenityName: {
+    fontSize: 15,
     fontWeight: 'bold',
-    color: DarkTheme.text.primary,
+    color: '#FFFFFF',
   },
-  bookingAmenitySub: {
-    fontSize: 12,
-    color: DarkTheme.text.secondary,
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 2,
   },
-  bookingAmenityMeta: {
-    fontSize: 12,
-    color: DarkTheme.text.tertiary,
-    marginTop: 4,
-  },
-  bookingIdText: {
+  bookingLocationText: {
     fontSize: 11,
-    color: DarkTheme.text.tertiary,
-    marginTop: 6,
+    color: '#6B7280',
   },
-  moreOptionsBtn: {
-    padding: 4,
+  bookingMetaGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  bookingMetaCol: {
+    flex: 1,
+  },
+  peopleCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  metaLabelText: {
+    fontSize: 10,
+    color: '#6B7280',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  metaValueText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
   emptyStateContainer: {
     flex: 1,
@@ -899,113 +1190,216 @@ const styles = StyleSheet.create({
     padding: 32,
     marginTop: 64,
   },
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dropdownContent: {
+    width: width * 0.8,
+    backgroundColor: '#0C0C0E',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 16,
+    padding: 8,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 10,
+  },
+  dropdownItemActive: {
+    backgroundColor: 'rgba(217, 119, 6, 0.08)',
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
+  dropdownItemTextActive: {
+    color: '#D97706',
+    fontWeight: 'bold',
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: DarkTheme.bg.card,
+    backgroundColor: '#0C0C0E',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderWidth: 1,
-    borderColor: DarkTheme.border.subtle,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     paddingBottom: 32,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 24,
+    padding: 20,
     borderBottomWidth: 1,
-    borderColor: DarkTheme.border.subtle,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  modalCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalTitleContainer: {
+    alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: DarkTheme.text.primary,
+    color: '#FFFFFF',
   },
   modalSubtitle: {
-    fontSize: 13,
-    color: DarkTheme.text.secondary,
+    fontSize: 12,
+    color: '#6B7280',
     marginTop: 2,
   },
   checklist: {
-    padding: 24,
+    padding: 20,
   },
-  checklistTitle: {
+  checklistSection: {
+    marginBottom: 8,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  sectionSubTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  sectionPriceTag: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#D97706',
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 12,
+  },
+  avatarContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
-    color: DarkTheme.text.tertiary,
-    textTransform: 'uppercase',
-    marginBottom: 12,
   },
-  checkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  checkText: {
-    fontSize: 16,
-    color: DarkTheme.text.primary,
+  checkboxLabel: {
+    fontSize: 14,
+    color: '#FFFFFF',
     fontWeight: '600',
-  },
-  guestsAddRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  guestsCountLabel: {
-    fontSize: 16,
-    color: DarkTheme.text.primary,
-    fontWeight: '600',
-  },
-  addGuestsBtn: {
-    borderColor: DarkTheme.accent.gold,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  addGuestsBtnText: {
-    color: DarkTheme.accent.gold,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  termsText: {
-    fontSize: 12,
-    color: DarkTheme.text.secondary,
     flex: 1,
   },
-  payBar: {
+  checkboxIcon: {
+    padding: 4,
+  },
+  guestsList: {
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  guestRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  guestNameText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    flex: 1,
+    marginLeft: 8,
+  },
+  addGuestsOutlineBtn: {
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addGuestsOutlineBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  termsCheckboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    paddingHorizontal: 4,
+  },
+  termsCheckboxLabel: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginLeft: 10,
+    flex: 1,
+  },
+  underline: {
+    textDecorationLine: 'underline',
+    color: '#FFFFFF',
+  },
+  modalPayBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderColor: DarkTheme.border.subtle,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
-  payLabel: {
+  modalPayCountText: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: DarkTheme.text.tertiary,
+    color: '#6B7280',
+    letterSpacing: 0.5,
   },
-  payAmount: {
-    fontSize: 24,
+  modalPayPriceText: {
+    fontSize: 22,
     fontWeight: 'bold',
-    color: DarkTheme.text.primary,
+    color: '#FFFFFF',
     marginTop: 2,
   },
-  payNowBtn: {
-    backgroundColor: '#fff',
+  modalPayNowBtn: {
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 36,
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: 24,
   },
-  payNowBtnText: {
-    color: '#000',
-    fontSize: 15,
+  modalPayNowBtnText: {
+    color: '#000000',
+    fontSize: 14,
     fontWeight: 'bold',
   },
 });
