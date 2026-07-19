@@ -3,10 +3,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
 
-import GuardDashboardScreen from '../screens/GuardDashboardScreen';
-import GuardVisitorEntryScreen from '../screens/GuardVisitorEntryScreen';
-import StaffScreen from '../screens/StaffScreen';
-import EntryExitLogScreen from '../screens/EntryExitLogScreen';
+import GuardDashboardScreen from '@/screens/guard/GuardDashboardScreen';
+import GuardVisitorEntryScreen from '@/screens/guard/GuardVisitorEntryScreen';
+import StaffScreen from '@/screens/shared/StaffScreen';
+import EntryExitLogScreen from '@/screens/guard/EntryExitLogScreen';
 
 import { DarkTheme } from '../utils/theme';
 

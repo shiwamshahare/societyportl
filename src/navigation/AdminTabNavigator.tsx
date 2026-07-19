@@ -3,14 +3,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
 
-import AdminDashboardScreen from '../screens/AdminDashboardScreen';
-import ResidentsScreen from '../screens/ResidentsScreen';
-import TowersScreen from '../screens/TowersScreen';
-import AmenitiesScreen from '../screens/AmenitiesScreen';
-import NoticesScreen from '../screens/NoticesScreen';
-import PollsScreen from '../screens/PollsScreen';
-import ComplaintsScreen from '../screens/ComplaintsScreen';
-import StaffScreen from '../screens/StaffScreen';
+import AdminDashboardScreen from '@/screens/admin/AdminDashboardScreen';
+import ResidentsScreen from '@/screens/admin/ResidentsScreen';
+import TowersScreen from '@/screens/admin/TowersScreen';
+import AmenitiesScreen from '@/screens/shared/AmenitiesScreen';
+import NoticesScreen from '@/screens/shared/NoticesScreen';
+import PollsScreen from '@/screens/shared/PollsScreen';
+import ComplaintsScreen from '@/screens/shared/ComplaintsScreen';
+import StaffScreen from '@/screens/shared/StaffScreen';
 
 import { DarkTheme } from '../utils/theme';
 

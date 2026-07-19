@@ -11,21 +11,21 @@ import { ResidentTabNavigator } from './ResidentTabNavigator';
 import { GuardTabNavigator } from './GuardTabNavigator';
 import { AdminTabNavigator } from './AdminTabNavigator';
 
-import LoginScreen from '../screens/LoginScreen';
-import SignupScreen from '../screens/SignupScreen';
-import OnboardingIntroScreen from '../screens/OnboardingIntroScreen';
-import SelectCityScreen from '../screens/SelectCityScreen';
-import SelectTypeScreen from '../screens/SelectTypeScreen';
-import SelectSocietyScreen from '../screens/SelectSocietyScreen';
-import SelectRoleScreen from '../screens/SelectRoleScreen';
-import SelectWingScreen from '../screens/SelectWingScreen';
-import SelectFlatScreen from '../screens/SelectFlatScreen';
-import SelectCompanyScreen from '../screens/SelectCompanyScreen';
-import CorporateDetailsScreen from '../screens/CorporateDetailsScreen';
-import SocietyDetailsScreen from '../screens/SocietyDetailsScreen';
-import OwnerIdProofScreen from '../screens/OwnerIdProofScreen';
-import OwnerDocumentsScreen from '../screens/OwnerDocumentsScreen';
-import TenantNocScreen from '../screens/TenantNocScreen';
+import LoginScreen from '@/screens/auth/LoginScreen';
+import SignupScreen from '@/screens/auth/SignupScreen';
+import OnboardingIntroScreen from '@/screens/onboarding/OnboardingIntroScreen';
+import SelectCityScreen from '@/screens/onboarding/SelectCityScreen';
+import SelectTypeScreen from '@/screens/onboarding/SelectTypeScreen';
+import SelectSocietyScreen from '@/screens/onboarding/SelectSocietyScreen';
+import SelectRoleScreen from '@/screens/onboarding/SelectRoleScreen';
+import SelectWingScreen from '@/screens/onboarding/SelectWingScreen';
+import SelectFlatScreen from '@/screens/onboarding/SelectFlatScreen';
+import SelectCompanyScreen from '@/screens/onboarding/SelectCompanyScreen';
+import CorporateDetailsScreen from '@/screens/onboarding/CorporateDetailsScreen';
+import SocietyDetailsScreen from '@/screens/onboarding/SocietyDetailsScreen';
+import OwnerIdProofScreen from '@/screens/onboarding/OwnerIdProofScreen';
+import OwnerDocumentsScreen from '@/screens/onboarding/OwnerDocumentsScreen';
+import TenantNocScreen from '@/screens/onboarding/TenantNocScreen';
 
 // Stack Navigator for Auth
 const Stack = createNativeStackNavigator();
