@@ -1,5 +1,8 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions, Alert } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/store';
+import { setAlertConfig, hideAlert as hideAlertAction, AlertButtonConfig } from '@/store/slices/alertSlice';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -7,13 +10,6 @@ type AlertButton = {
   text: string;
   onPress?: () => void;
   style?: 'default' | 'cancel' | 'destructive';
-};
-
-type AlertConfig = {
-  visible: boolean;
-  title: string;
-  message: string;
-  buttons?: AlertButton[];
 };
 
 type AlertContextType = {
@@ -26,33 +22,49 @@ const AlertContext = createContext<AlertContextType>({} as AlertContextType);
 export const useAlert = () => useContext(AlertContext);
 
 export const AlertProvider = ({ children }: { children: React.ReactNode }) => {
-  const [config, setConfig] = useState<AlertConfig>({
-    visible: false,
-    title: '',
-    message: '',
-  });
+  const dispatch = useDispatch();
+
+  // Read config from Redux
+  const visible = useSelector((state: RootState) => state.alert.visible);
+  const title = useSelector((state: RootState) => state.alert.title);
+  const message = useSelector((state: RootState) => state.alert.message);
+  const buttonsConfig = useSelector((state: RootState) => state.alert.buttons);
+
+  // Store non-serializable callbacks locally in a ref
+  const buttonCallbacksRef = useRef<(() => void)[]>([]);
 
   const showAlert = (title: string, message?: string, buttons?: AlertButton[]) => {
-    setConfig({
-      visible: true,
-      title: title || 'Alert',
-      message: message || '',
-      // If no buttons, default to a standard close action button
-      buttons: buttons && buttons.length > 0 ? buttons : [{ text: 'OK' }],
-    });
+    // If no buttons, default to a standard close action button
+    const resolvedButtons = buttons && buttons.length > 0 ? buttons : [{ text: 'OK' }];
+
+    // Store callbacks in ref
+    buttonCallbacksRef.current = resolvedButtons.map(btn => btn.onPress || (() => {}));
+
+    // Dispatch serializable config to Redux
+    const serializableButtons: AlertButtonConfig[] = resolvedButtons.map(btn => ({
+      text: btn.text,
+      style: btn.style,
+    }));
+
+    dispatch(
+      setAlertConfig({
+        title: title || 'Alert',
+        message: message || '',
+        buttons: serializableButtons,
+      })
+    );
   };
 
   const hideAlert = () => {
-    setConfig(prev => ({ ...prev, visible: false }));
+    dispatch(hideAlertAction());
   };
 
   // Global patching of both standard alert and Alert.alert
   useEffect(() => {
-    // Safely patch global.alert (Hermes has a read-only getter for alert)
     try {
       Object.defineProperty(global, 'alert', {
-        value: (message: any) => {
-          showAlert('Info', String(message));
+        value: (msg: any) => {
+          showAlert('Info', String(msg));
         },
         writable: true,
         configurable: true,
@@ -61,24 +73,22 @@ export const AlertProvider = ({ children }: { children: React.ReactNode }) => {
       console.warn('Could not override global.alert:', e);
     }
 
-    // Patch React Native's Alert.alert
     const originalAlert = Alert.alert;
-    Alert.alert = (title: string, message?: string, buttons?: any[]) => {
-      showAlert(title, message, buttons);
+    Alert.alert = (t: string, msg?: string, btns?: any[]) => {
+      showAlert(t, msg, btns);
     };
 
     return () => {
-      // Restore on unmount
       Alert.alert = originalAlert;
     };
   }, []);
 
-  const handleButtonPress = (btn: AlertButton) => {
+  const handleButtonPress = (index: number) => {
     hideAlert();
-    if (btn.onPress) {
-      // Delay slightly to allow modal to close smoothly
+    const callback = buttonCallbacksRef.current[index];
+    if (callback) {
       setTimeout(() => {
-        btn.onPress?.();
+        callback();
       }, 150);
     }
   };
@@ -88,21 +98,21 @@ export const AlertProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
       
       <Modal
-        visible={config.visible}
+        visible={visible}
         transparent={true}
         animationType="fade"
         onRequestClose={hideAlert}
       >
         <View style={styles.overlay}>
           <View style={styles.alertBox}>
-            <Text style={styles.title}>{config.title}</Text>
-            {config.message ? <Text style={styles.message}>{config.message}</Text> : null}
+            <Text style={styles.title}>{title}</Text>
+            {message ? <Text style={styles.message}>{message}</Text> : null}
             
             <View style={[
               styles.buttonContainer,
-              config.buttons && config.buttons.length > 2 && styles.buttonContainerStacked
+              buttonsConfig && buttonsConfig.length > 2 && styles.buttonContainerStacked
             ]}>
-              {config.buttons?.map((btn, index) => {
+              {buttonsConfig?.map((btn, index) => {
                 const isCancel = btn.style === 'cancel' || btn.text.toLowerCase() === 'cancel';
                 const isDestructive = btn.style === 'destructive';
                 
@@ -113,9 +123,9 @@ export const AlertProvider = ({ children }: { children: React.ReactNode }) => {
                       styles.button,
                       isCancel ? styles.cancelButton : styles.confirmButton,
                       isDestructive && styles.destructiveButton,
-                      config.buttons && config.buttons.length > 2 && styles.buttonStacked
+                      buttonsConfig && buttonsConfig.length > 2 && styles.buttonStacked
                     ]}
-                    onPress={() => handleButtonPress(btn)}
+                    onPress={() => handleButtonPress(index)}
                     activeOpacity={0.8}
                   >
                     <Text style={[
@@ -144,7 +154,7 @@ const styles = StyleSheet.create({
   },
   alertBox: {
     width: SCREEN_WIDTH * 0.85,
-    backgroundColor: '#121214', // Solid dark gray charcoal matching BelleVie design
+    backgroundColor: '#121214',
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -189,7 +199,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   confirmButton: {
-    backgroundColor: '#FFFFFF', // White background matching premium button style
+    backgroundColor: '#FFFFFF',
   },
   cancelButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -200,7 +210,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EF4444',
   },
   confirmButtonText: {
-    color: '#000000', // Black bold text
+    color: '#000000',
     fontSize: 15,
     fontWeight: 'bold',
   },

@@ -1,19 +1,24 @@
-import React, { createContext, ReactNode, useState } from 'react';
-
-export type UserRole = 'resident' | 'guard' | 'admin';
-
-export type User = {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  flatNumber?: string;
-  tower?: string;
-  phone?: string;
-  password?: string;
-  societyName?: string;
-  isApproved?: boolean;
-};
+import React, { createContext, ReactNode, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { supabase } from '@/utils/supabase';
+import { RootState } from '@/store';
+import {
+  setSignedIn,
+  setUser,
+  setSocietyLocked,
+  setSubmittedName as setSubmittedNameAction,
+  User,
+  UserRole,
+  checkPhoneExistsThunk,
+  checkEmailExistsThunk,
+  signInThunk,
+  signUpThunk,
+  signOutThunk,
+  fetchAllUsersThunk,
+  sendPhoneOTPThunk,
+  verifyPhoneOTPThunk,
+  signInWithGoogleThunk,
+} from '@/store/slices/authSlice';
 
 type AuthContextType = {
   isSignedIn: boolean;
@@ -28,118 +33,188 @@ type AuthContextType = {
   setIsSocietyLocked: (val: boolean) => void;
   submittedName: string;
   setSubmittedName: (val: string) => void;
+  checkPhoneExists: (phone: string) => Promise<{ exists: boolean; user?: User }>;
+  checkEmailExists: (email: string) => Promise<{ exists: boolean }>;
+  sendPhoneOTP: (phone: string) => Promise<{ success: boolean; error?: string; devOtp?: string }>;
+  verifyPhoneOTP: (phone: string, token: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
 };
 
 export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-// Mock users for demonstration
-const INITIAL_USERS: User[] = [
-  {
-    id: '1',
-    name: 'Shiwam Shahare',
-    email: 'resident@example.com',
-    password: 'resident123',
-    role: 'resident',
-    flatNumber: '101A',
-    tower: 'Tower A',
-    phone: '+91 8412908901',
-    isApproved: true
-  },
-  {
-    id: '2',
-    name: 'Security Guard',
-    email: 'guard@example.com',
-    password: 'guard123',
-    role: 'guard',
-    phone: '+91 8605978199',
-    isApproved: true
-  },
-  {
-    id: '3',
-    name: 'Society Admin',
-    email: 'admin@example.com',
-    password: 'admin123',
-    role: 'admin',
-    phone: '+91 0000000000',
-    isApproved: true
-  }
-];
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>(INITIAL_USERS);
-  const [isSocietyLocked, setIsSocietyLocked] = useState(false);
-  const [submittedName, setSubmittedName] = useState('Shiwam');
+  const dispatch = useDispatch();
+  
+  // Read state from Redux
+  const isSignedIn = useSelector((state: RootState) => state.auth.isSignedIn);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const users = useSelector((state: RootState) => state.auth.users);
+  const isSocietyLocked = useSelector((state: RootState) => state.auth.isSocietyLocked);
+  const submittedName = useSelector((state: RootState) => state.auth.submittedName);
+  const devOtpSession = useSelector((state: RootState) => state.auth.devOtpSession);
 
-  const signIn = (credentials: { email: string; password: string; role: UserRole }): Promise<{ success: boolean; error?: string }> => {
-    return new Promise<{ success: boolean; error?: string }>((resolve) => {
-      setTimeout(() => {
-        const found = users.find(
-          u =>
-            u.email === credentials.email &&
-            u.password === credentials.password &&
-            u.role === credentials.role
-        );
+  // Sync Supabase Auth listener with Redux state
+  const handleSession = async (session: any) => {
+    if (session?.user) {
+      // Fetch database profile
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
 
-        if (found) {
-          const { password, ...userWithoutPassword } = found;
-          setUser(userWithoutPassword);
-          setIsSignedIn(true);
-          resolve({ success: true });
-        } else {
-          resolve({ success: false, error: 'Invalid credentials' });
-        }
-      }, 1000);
+      if (profile && !error) {
+        dispatch(setUser({
+          id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          role: profile.role as UserRole,
+          flatNumber: profile.flat_number || undefined,
+          tower: profile.tower || undefined,
+          phone: profile.phone || undefined,
+          societyName: profile.society_name || undefined,
+          isApproved: profile.is_approved,
+        }));
+        dispatch(setSignedIn(true));
+      } else {
+        dispatch(setUser({
+          id: session.user.id,
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+          email: session.user.email || '',
+          role: (session.user.user_metadata?.role as UserRole) || 'resident',
+          isApproved: false,
+        }));
+        dispatch(setSignedIn(true));
+      }
+    } else {
+      dispatch(setUser(null));
+      dispatch(setSignedIn(false));
+    }
+  };
+
+  useEffect(() => {
+    // Initial check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleSession(session);
     });
+
+    // Listen to changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleSession(session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Fetch profiles whenever an admin logs in
+  useEffect(() => {
+    if (isSignedIn && user?.role === 'admin') {
+      dispatch(fetchAllUsersThunk() as any);
+    }
+  }, [isSignedIn, user?.role]);
+
+  const signIn = async (credentials: { email: string; password: string; role: UserRole }): Promise<{ success: boolean; error?: string }> => {
+    const resultAction = await dispatch(signInThunk(credentials) as any);
+    if (signInThunk.fulfilled.match(resultAction)) {
+      return { success: true };
+    }
+    return { success: false, error: resultAction.payload as string };
   };
 
   const signInDirect = (userData: User) => {
-    const { password, ...userWithoutPassword } = userData;
-    setUser(userWithoutPassword);
-    setIsSignedIn(true);
+    dispatch(setUser(userData));
+    dispatch(setSignedIn(true));
   };
 
-  const signUp = (newUserData: Omit<User, 'id'>): Promise<{ success: boolean; error?: string }> => {
-    return new Promise<{ success: boolean; error?: string }>((resolve) => {
-      setTimeout(() => {
-        // Check if email already exists
-        const exists = users.some(u => u.email.toLowerCase() === newUserData.email.toLowerCase());
-        if (exists) {
-          resolve({ success: false, error: 'User with this email already exists' });
-          return;
-        }
-
-        const newUserObj: User = {
-          ...newUserData,
-          id: String(users.length + 1),
-          isApproved: false,
-        };
-
-        setUsers(prev => [...prev, newUserObj]);
-
-        // Log in the user automatically
-        const { password, ...userWithoutPassword } = newUserObj;
-        setUser(userWithoutPassword);
-        setIsSignedIn(true);
-
-        resolve({ success: true });
-      }, 1000);
-    });
+  const signUp = async (newUserData: Omit<User, 'id'>): Promise<{ success: boolean; error?: string }> => {
+    const resultAction = await dispatch(signUpThunk(newUserData) as any);
+    if (signUpThunk.fulfilled.match(resultAction)) {
+      return { success: true };
+    }
+    return { success: false, error: resultAction.payload as string };
   };
 
   const signOut = () => {
-    setUser(null);
-    setIsSignedIn(false);
+    dispatch(signOutThunk() as any);
   };
 
-  const debugSwitchRole = (role: UserRole) => {
-    const foundUser = users.find(u => u.role === role);
-    if (foundUser) {
-      const { password, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      setIsSignedIn(true);
+  const debugSwitchRole = async (role: UserRole) => {
+    const { data: profiles, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('role', role)
+      .limit(1);
+
+    if (profiles && profiles.length > 0 && !error) {
+      const p = profiles[0];
+      dispatch(setUser({
+        id: p.id,
+        name: p.name,
+        email: p.email,
+        role: p.role as UserRole,
+        flatNumber: p.flat_number || undefined,
+        tower: p.tower || undefined,
+        phone: p.phone || undefined,
+        societyName: p.society_name || undefined,
+        isApproved: p.is_approved,
+      }));
+      dispatch(setSignedIn(true));
     }
+  };
+
+  const setIsSocietyLocked = (val: boolean) => {
+    dispatch(setSocietyLocked(val));
+  };
+
+  const setSubmittedName = (val: string) => {
+    dispatch(setSubmittedNameAction(val));
+  };
+
+  const checkPhoneExists = async (phone: string): Promise<{ exists: boolean; user?: User }> => {
+    const resultAction = await dispatch(checkPhoneExistsThunk(phone) as any);
+    if (checkPhoneExistsThunk.fulfilled.match(resultAction)) {
+      return resultAction.payload;
+    }
+    return { exists: false };
+  };
+
+  const checkEmailExists = async (email: string): Promise<{ exists: boolean }> => {
+    const resultAction = await dispatch(checkEmailExistsThunk(email) as any);
+    if (checkEmailExistsThunk.fulfilled.match(resultAction)) {
+      return resultAction.payload;
+    }
+    return { exists: false };
+  };
+
+  const sendPhoneOTP = async (phone: string): Promise<{ success: boolean; error?: string; devOtp?: string }> => {
+    const resultAction = await dispatch(sendPhoneOTPThunk(phone) as any);
+    if (sendPhoneOTPThunk.fulfilled.match(resultAction)) {
+      return {
+        success: true,
+        devOtp: resultAction.payload.devOtp,
+      };
+    }
+    return { success: false, error: resultAction.payload as string };
+  };
+
+  const verifyPhoneOTP = async (phone: string, token: string): Promise<{ success: boolean; error?: string }> => {
+    const resultAction = await dispatch(
+      verifyPhoneOTPThunk({ phone, token, devOtpSession }) as any
+    );
+    if (verifyPhoneOTPThunk.fulfilled.match(resultAction)) {
+      return { success: true };
+    }
+    return { success: false, error: resultAction.payload as string };
+  };
+
+  const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+    const resultAction = await dispatch(signInWithGoogleThunk() as any);
+    if (signInWithGoogleThunk.fulfilled.match(resultAction)) {
+      return { success: true };
+    }
+    return { success: false, error: resultAction.payload as string };
   };
 
   return (
@@ -156,8 +231,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsSocietyLocked,
       submittedName,
       setSubmittedName,
+      checkPhoneExists,
+      checkEmailExists,
+      sendPhoneOTP,
+      verifyPhoneOTP,
+      signInWithGoogle,
     }}>
       {children}
     </AuthContext.Provider>
   );
 };
+export { User, UserRole };

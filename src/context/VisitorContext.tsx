@@ -1,46 +1,20 @@
-import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
+import React, { createContext, useEffect, ReactNode, useContext } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { AuthContext } from './AuthContext';
-
-export type VisitorType = 'guest' | 'delivery' | 'maid';
-export type VisitorStatus = 'pending' | 'approved' | 'rejected' | 'left_at_gate';
-
-export type PreApprovedInvite = {
-  id: string;
-  guestName: string;
-  type: VisitorType;
-  dateTime: string;
-  passcode: string;
-  status: 'active' | 'used' | 'cancelled';
-  residentId: string;
-  residentName: string;
-  flatNumber: string;
-  societyName: string;
-};
-
-export type VisitorLogEntry = {
-  id: string;
-  name: string;
-  type: VisitorType;
-  time: string;
-  date: string;
-  status: VisitorStatus;
-  actionBy: string;
-  phone: string;
-  flatNumber: string;
-  avatar: any;
-  company?: string;
-  passcodeUsed?: string;
-};
-
-export type AuthRequest = {
-  id: string;
-  name: string;
-  type: VisitorType;
-  company?: string;
-  flatNumber: string;
-  phone: string;
-  timeLeft: number;
-};
+import { RootState } from '@/store';
+import {
+  PreApprovedInvite,
+  VisitorLogEntry,
+  AuthRequest,
+  VisitorType,
+  VisitorStatus,
+  addPreApprovedInvite,
+  updatePreApprovedInviteStatus,
+  addVisitorLogEntry,
+  updateVisitorLogStatus,
+  setActiveAuthRequest,
+  updateActiveAuthRequestTimeLeft,
+} from '@/store/slices/visitorSlice';
 
 type VisitorContextType = {
   preApprovedInvites: PreApprovedInvite[];
@@ -78,111 +52,37 @@ const getFormattedDate = () => {
 };
 
 export const VisitorProvider = ({ children }: { children: ReactNode }) => {
+  const dispatch = useDispatch();
   const { user } = useContext(AuthContext);
 
-  // Initial Seed Data
-  const [preApprovedInvites, setPreApprovedInvites] = useState<PreApprovedInvite[]>([
-    {
-      id: 'p1',
-      guestName: 'Anshu Singh',
-      type: 'guest',
-      dateTime: '23 Jul 2025 | 11:00 am',
-      passcode: '200895',
-      status: 'active',
-      residentId: '1',
-      residentName: 'John Doe',
-      flatNumber: '101A',
-      societyName: 'BelleVie',
-    },
-    {
-      id: 'p2',
-      guestName: 'Sarah Johnson',
-      type: 'guest',
-      dateTime: '24 Jul 2025 | 2:00 pm',
-      passcode: '123456',
-      status: 'active',
-      residentId: '1',
-      residentName: 'John Doe',
-      flatNumber: '101A',
-      societyName: 'BelleVie',
-    }
-  ]);
-
-  const [visitorsLog, setVisitorsLog] = useState<VisitorLogEntry[]>([
-    {
-      id: '1',
-      name: 'Anshu Singh',
-      type: 'guest',
-      time: '11:00 am',
-      date: '23 Jul 2025',
-      status: 'pending',
-      actionBy: 'No action taken by Resident',
-      phone: '+91 98765 43210',
-      flatNumber: '101A',
-      avatar: require('../../assets/images/avatars/visitor1.png'),
-    },
-    {
-      id: '2',
-      name: 'Amazon',
-      type: 'delivery',
-      time: '11:00 am',
-      date: '23 Jul 2025',
-      status: 'pending',
-      actionBy: 'No action taken by Resident',
-      phone: '+91 88888 77777',
-      flatNumber: '101A',
-      avatar: require('../../assets/images/avatars/visitor2.png'),
-      company: 'Amazon',
-    },
-    {
-      id: '3',
-      name: 'Raj kumar',
-      type: 'maid',
-      time: '11:00 am',
-      date: '18 Jul 2025',
-      status: 'approved',
-      actionBy: 'Approved by Jyoti Singh',
-      phone: '+91 77777 66666',
-      flatNumber: '101A',
-      avatar: require('../../assets/images/avatars/visitor3.png'),
-    }
-  ]);
-
-  const [activeAuthRequest, setActiveAuthRequest] = useState<AuthRequest | null>(null);
+  // Read state from Redux
+  const preApprovedInvites = useSelector((state: RootState) => state.visitor.preApprovedInvites);
+  const visitorsLog = useSelector((state: RootState) => state.visitor.visitorsLog);
+  const activeAuthRequest = useSelector((state: RootState) => state.visitor.activeAuthRequest);
 
   // Countdown timer logic for active requests
   useEffect(() => {
     if (!activeAuthRequest) return;
 
     const timer = setInterval(() => {
-      setActiveAuthRequest(prev => {
-        if (!prev) return null;
-        if (prev.timeLeft <= 1) {
-          clearInterval(timer);
-          // Auto-reject on timeout
-          handleAutoReject(prev.id);
-          return null;
-        }
-        return { ...prev, timeLeft: prev.timeLeft - 1 };
-      });
+      if (activeAuthRequest.timeLeft <= 1) {
+        clearInterval(timer);
+        handleAutoReject(activeAuthRequest.id);
+      } else {
+        dispatch(updateActiveAuthRequestTimeLeft(activeAuthRequest.timeLeft - 1));
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [activeAuthRequest]);
+  }, [activeAuthRequest, dispatch]);
 
   const handleAutoReject = (requestId: string) => {
-    setVisitorsLog(prevLog =>
-      prevLog.map(entry => {
-        if (entry.id === requestId) {
-          return {
-            ...entry,
-            status: 'rejected',
-            actionBy: 'Auto-rejected (Timeout)',
-          };
-        }
-        return entry;
-      })
-    );
+    dispatch(updateVisitorLogStatus({
+      id: requestId,
+      status: 'rejected',
+      actionBy: 'Auto-rejected (Timeout)',
+    }));
+    dispatch(setActiveAuthRequest(null));
   };
 
   // Create a pre-approved gate pass invite
@@ -202,7 +102,7 @@ export const VisitorProvider = ({ children }: { children: ReactNode }) => {
       societyName: 'BelleVie',
     };
 
-    setPreApprovedInvites(prev => [newInvite, ...prev]);
+    dispatch(addPreApprovedInvite(newInvite));
 
     // Also add an entry in the visitor log as a pending pre-approved visitor
     const newLogEntry: VisitorLogEntry = {
@@ -215,10 +115,10 @@ export const VisitorProvider = ({ children }: { children: ReactNode }) => {
       actionBy: `Pre-approved by ${user?.name || 'Resident'}`,
       phone: '+91 ----- -----',
       flatNumber: user?.flatNumber || '101A',
-      avatar: require('../../assets/images/avatars/user.png'),
+      avatar: require('@/assets/images/avatars/user.png'),
     };
     
-    setVisitorsLog(prev => [newLogEntry, ...prev]);
+    dispatch(addVisitorLogEntry(newLogEntry));
 
     return newInvite;
   };
@@ -229,44 +129,33 @@ export const VisitorProvider = ({ children }: { children: ReactNode }) => {
     
     if (invite) {
       // Mark as used
-      setPreApprovedInvites(prev =>
-        prev.map(i => (i.id === invite.id ? { ...i, status: 'used' } : i))
-      );
+      dispatch(updatePreApprovedInviteStatus({ id: invite.id, status: 'used' }));
 
       // Check if there is already a log entry for this invite ID and update it, or add a new one
-      setVisitorsLog(prev => {
-        const exists = prev.some(entry => entry.id === invite.id);
-        if (exists) {
-          return prev.map(entry =>
-            entry.id === invite.id
-              ? {
-                  ...entry,
-                  status: 'approved' as VisitorStatus,
-                  time: getFormattedTime(),
-                  date: getFormattedDate(),
-                  actionBy: `Approved by Pre-approval (Pass: ${passcode})`,
-                }
-              : entry
-          );
-        } else {
-          return [
-            {
-              id: invite.id,
-              name: invite.guestName,
-              type: invite.type,
-              time: getFormattedTime(),
-              date: getFormattedDate(),
-              status: 'approved',
-              actionBy: `Approved by Pre-approval (Pass: ${passcode})`,
-              phone: '+91 ----- -----',
-              flatNumber: invite.flatNumber,
-              avatar: require('../../assets/images/avatars/user.png'),
-              passcodeUsed: passcode,
-            },
-            ...prev,
-          ];
-        }
-      });
+      const exists = visitorsLog.some(entry => entry.id === invite.id);
+      if (exists) {
+        dispatch(updateVisitorLogStatus({
+          id: invite.id,
+          status: 'approved',
+          time: getFormattedTime(),
+          date: getFormattedDate(),
+          actionBy: `Approved by Pre-approval (Pass: ${passcode})`,
+        }));
+      } else {
+        dispatch(addVisitorLogEntry({
+          id: invite.id,
+          name: invite.guestName,
+          type: invite.type,
+          time: getFormattedTime(),
+          date: getFormattedDate(),
+          status: 'approved',
+          actionBy: `Approved by Pre-approval (Pass: ${passcode})`,
+          phone: '+91 ----- -----',
+          flatNumber: invite.flatNumber,
+          avatar: require('@/assets/images/avatars/user.png'),
+          passcodeUsed: passcode,
+        }));
+      }
 
       return { success: true, message: `Passcode Verified! Checked in ${invite.guestName}.`, invite };
     }
@@ -296,12 +185,12 @@ export const VisitorProvider = ({ children }: { children: ReactNode }) => {
       phone: visitorDetails.phone,
       flatNumber: visitorDetails.flatNumber,
       avatar: visitorDetails.type === 'delivery' 
-        ? require('../../assets/images/avatars/visitor2.png') 
-        : require('../../assets/images/avatars/visitor4.png'),
+        ? require('@/assets/images/avatars/visitor2.png') 
+        : require('@/assets/images/avatars/visitor4.png'),
       company: visitorDetails.company,
     };
 
-    setVisitorsLog(prev => [newEntry, ...prev]);
+    dispatch(addVisitorLogEntry(newEntry));
 
     // 2. Set active request to trigger resident popup modal
     const request: AuthRequest = {
@@ -314,37 +203,30 @@ export const VisitorProvider = ({ children }: { children: ReactNode }) => {
       timeLeft: 15,
     };
 
-    setActiveAuthRequest(request);
+    dispatch(setActiveAuthRequest(request));
 
     return { success: true, requestId };
   };
 
   // Resident responds to the authorization request popup
   const respondToAuthRequest = (requestId: string, response: 'approved' | 'rejected' | 'left_at_gate') => {
-    setVisitorsLog(prevLog =>
-      prevLog.map(entry => {
-        if (entry.id === requestId) {
-          let actionBy = '';
-          if (response === 'approved') actionBy = `Approved by ${user?.name || 'Resident'}`;
-          else if (response === 'rejected') actionBy = `Rejected by ${user?.name || 'Resident'}`;
-          else if (response === 'left_at_gate') actionBy = `Left at Gate by ${user?.name || 'Resident'}`;
+    let actionBy = '';
+    if (response === 'approved') actionBy = `Approved by ${user?.name || 'Resident'}`;
+    else if (response === 'rejected') actionBy = `Rejected by ${user?.name || 'Resident'}`;
+    else if (response === 'left_at_gate') actionBy = `Left at Gate by ${user?.name || 'Resident'}`;
 
-          return {
-            ...entry,
-            status: response,
-            actionBy,
-          };
-        }
-        return entry;
-      })
-    );
+    dispatch(updateVisitorLogStatus({
+      id: requestId,
+      status: response,
+      actionBy,
+    }));
 
     // Clear the active auth request
-    setActiveAuthRequest(null);
+    dispatch(setActiveAuthRequest(null));
   };
 
   const clearActiveAuthRequest = () => {
-    setActiveAuthRequest(null);
+    dispatch(setActiveAuthRequest(null));
   };
 
   return (
@@ -364,3 +246,4 @@ export const VisitorProvider = ({ children }: { children: ReactNode }) => {
     </VisitorContext.Provider>
   );
 };
+export { PreApprovedInvite, VisitorLogEntry, AuthRequest, VisitorType, VisitorStatus };

@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,28 +15,29 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 
-import { Ionicons } from '@expo/vector-icons';
+import { FloatingLabelInput } from '@/components/ui/FloatingLabelInput';
 import { BORDER_RADIUS, SPACING } from '@/constants/layout';
 import { AuthContext } from '@/context/AuthContext';
 import { DarkTheme } from '@/utils/theme';
-import { FloatingLabelInput } from '@/components/ui/FloatingLabelInput';
+import { Ionicons } from '@expo/vector-icons';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }: { navigation: any }) => {
-  const { signIn, signInDirect, users } = useContext(AuthContext);
+  const { signIn, signInDirect, checkPhoneExists, checkEmailExists, sendPhoneOTP, verifyPhoneOTP, signInWithGoogle } = useContext(AuthContext);
 
   // Login Steps:
   // 0 = Landing Welcome (Image 1)
   // 1 = Enter Mobile Number (Image 2)
   // 2 = Enter Corporate Email (Image 3)
   // 3 = Enter Password (Password step after email)
-  const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
+  // 4 = Enter OTP (OTP verification step after mobile)
+  const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
 
   // Mobile inputs
   const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
 
   // Email/Password inputs
   const [email, setEmail] = useState('');
@@ -47,6 +49,7 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
   const phoneInputRef = useRef<TextInput>(null);
   const emailInputRef = useRef<TextInput>(null);
   const passwordInputRef = useRef<TextInput>(null);
+  const otpInputRef = useRef<TextInput>(null);
 
   // Focus input automatically when entering steps
   useEffect(() => {
@@ -62,6 +65,10 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
       setTimeout(() => {
         passwordInputRef.current?.focus();
       }, 100);
+    } else if (step === 4) {
+      setTimeout(() => {
+        otpInputRef.current?.focus();
+      }, 100);
     }
   }, [step]);
 
@@ -73,27 +80,17 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
     setError(null);
     setLoading(true);
 
-    // Normalize phone input to digits only
-    const normalizedInput = phone.replace(/[^0-9]/g, '');
-
-    // Lookup user by phone number
-    const matchedUser = users.find(u => {
-      if (!u.phone) return false;
-      const normalizedUserPhone = u.phone.replace(/[^0-9]/g, '');
-      return normalizedUserPhone.endsWith(normalizedInput) || normalizedInput.endsWith(normalizedUserPhone);
-    });
-
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      if (matchedUser) {
-        signInDirect(matchedUser);
-        Alert.alert('Success', `Welcome back, ${matchedUser.name}!`);
+      const existsResult = await checkPhoneExists(phone);
+      if (existsResult.exists && existsResult.user) {
+        signInDirect(existsResult.user);
+        Alert.alert('Success', `Welcome back, ${existsResult.user.name}!`);
       } else {
         Alert.alert('Info', 'Mobile number not found in records. Redirecting to Sign Up.');
         navigation.navigate('Signup', { phone: phone });
       }
     } catch {
-      setError('An error occurred during mobile sign in');
+      setError('An error occurred during mobile login');
     } finally {
       setLoading(false);
     }
@@ -108,11 +105,9 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
     setError(null);
     setLoading(true);
 
-    const matchedUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      if (matchedUser) {
+      const result = await checkEmailExists(email);
+      if (result.exists) {
         setStep(3); // User exists, ask for password
       } else {
         Alert.alert('Info', 'Email not found in records. Redirecting to Sign Up.');
@@ -120,6 +115,28 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
       }
     } catch {
       setError('An error occurred checking email');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpVerify = async () => {
+    if (otp.length < 6) {
+      setError('Please enter the 6-digit verification code');
+      return;
+    }
+    setError(null);
+    setLoading(true);
+
+    try {
+      const result = await verifyPhoneOTP(phone, otp);
+      if (result.success) {
+        Alert.alert('Success', 'Login successful!');
+      } else {
+        setError(result.error || 'Invalid verification code');
+      }
+    } catch {
+      setError('An error occurred during OTP verification');
     } finally {
       setLoading(false);
     }
@@ -179,6 +196,25 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      if (result.success) {
+        Alert.alert('Success', 'Google Sign In successful!');
+      } else {
+        if (result.error && !result.error.includes('cancelled') && !result.error.includes('fail')) {
+          setError(result.error);
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during Google Sign In');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Render Step 0: Welcome Landing Screen
   if (step === 0) {
     return (
@@ -230,6 +266,30 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
             style={styles.corporateLinkButton}
           >
             <Text style={styles.corporateLinkText}>Continue with Corporate Email</Text>
+          </TouchableOpacity>
+
+          {/* OR Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Google Sign-in Button */}
+          <TouchableOpacity
+            onPress={handleGoogleLogin}
+            disabled={loading}
+            activeOpacity={0.7}
+            style={styles.googleButton}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <>
+                <Ionicons name="logo-google" size={18} color="#FFFFFF" />
+                <Text style={styles.googleButtonText}>Continue with Google</Text>
+              </>
+            )}
           </TouchableOpacity>
         </SafeAreaView>
       </View>
@@ -427,6 +487,79 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
                 style={styles.corporateLinkButton}
               >
                 <Text style={styles.corporateLinkText}>Continue with Mobile Number</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
+
+  // Render Step 4: Enter OTP Screen (Post-mobile verification)
+  if (step === 4) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <LinearGradient
+          colors={['rgba(56, 189, 248, 0.08)', 'rgba(0, 0, 0, 0)']}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 220 }}
+        />
+        {/* Header */}
+        <View style={styles.stepHeader}>
+          <TouchableOpacity
+            onPress={() => setStep(1)}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitleText}>Verify OTP</Text>
+          <View style={styles.widthPlaceholder} />
+        </View>
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.flexOne}
+        >
+          <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+            <View style={styles.stepContent}>
+              <Text style={styles.stepTitle}>Enter the 6-digit OTP</Text>
+              <Text style={styles.emailDisplayLabel}>Sent to {phone}</Text>
+
+              {/* OTP input */}
+              <FloatingLabelInput
+                ref={otpInputRef}
+                label="Verification Code"
+                style={styles.inputBorderContainer}
+                keyboardType="number-pad"
+                maxLength={6}
+                value={otp}
+                onChangeText={(text) => {
+                  setOtp(text.replace(/[^0-9]/g, ''));
+                  if (error) setError(null);
+                }}
+              />
+
+              {error && (
+                <View style={styles.innerErrorContainer}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              )}
+
+              {/* Verify OTP Button */}
+              <TouchableOpacity
+                style={[
+                  styles.continueButton,
+                  otp.length < 6 && styles.disabledButton
+                ]}
+                onPress={handleOtpVerify}
+                disabled={otp.length < 6 || loading}
+                activeOpacity={0.8}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#000000" />
+                ) : (
+                  <Text style={styles.continueButtonText}>Verify & Login</Text>
+                )}
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -635,6 +768,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textDecorationLine: 'underline',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    height: 56,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: SPACING.md,
+  },
+  googleButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   // Step 1 & 2 & 3: Mobile & Email & Password Entry
   stepHeader: {

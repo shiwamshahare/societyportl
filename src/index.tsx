@@ -7,6 +7,8 @@ import { AlertProvider } from './context/AlertContext';
 import { VisitorProvider } from './context/VisitorContext';
 import { DarkTheme } from './utils/theme';
 import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
+import { Provider } from 'react-redux';
+import { store } from './store';
 
 type RootParamList = {
   Login: undefined;
@@ -42,18 +44,20 @@ export default function App() {
   }
 
   return (
-    <AuthProvider>
-      <AlertProvider>
-        <VisitorProvider>
-          <>
-            <StatusBar barStyle="light-content" backgroundColor="#0B0F17" />
-            <NavigationContainer ref={navigationRef} theme={navTheme}>
-              <RootNavigator />
-            </NavigationContainer>
-          </>
-        </VisitorProvider>
-      </AlertProvider>
-    </AuthProvider>
+    <Provider store={store}>
+      <AuthProvider>
+        <AlertProvider>
+          <VisitorProvider>
+            <>
+              <StatusBar barStyle="light-content" backgroundColor="#0B0F17" />
+              <NavigationContainer ref={navigationRef} theme={navTheme}>
+                <RootNavigator />
+              </NavigationContainer>
+            </>
+          </VisitorProvider>
+        </AlertProvider>
+      </AuthProvider>
+    </Provider>
   );
 }
 
